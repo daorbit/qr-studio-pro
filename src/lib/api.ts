@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 
 // export const API_URL = 'http://localhost:3000/api';
-export const API_URL = 'https://be-link-generator.vercel.app/api';
+export const API_URL = 'https://be-qrstudio.daorbit.in/api';
 
 // Retry configuration
 const RETRY_CONFIG = {
