@@ -7,6 +7,7 @@ import { Provider } from "react-redux";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { store } from "./store";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SubscriptionProvider } from "./context/SubscriptionContext";
@@ -175,6 +176,7 @@ const AppContent = () => {
         <Toaster />
         <Sonner />
         <Analytics />
+        <SpeedInsights />
       </TooltipProvider>
     </ConfigProvider>
   );
