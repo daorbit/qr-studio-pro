@@ -1,0 +1,52 @@
+/* Custom styles for the limit reached modal */
+.limit-reached-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.15);
+  @apply bg-background border border-border;
+}
+
+.limit-reached-modal .ant-modal-header {
+  border-bottom: none;
+  padding: 0;
+  @apply bg-background;
+}
+
+.limit-reached-modal .ant-modal-body {
+  padding: 0;
+  @apply bg-background;
+}
+
+.limit-reached-modal .ant-modal-close {
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  @apply bg-muted hover:bg-muted/80;
+}
+
+.limit-reached-modal .ant-modal-close-x {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 14px;
+  @apply text-muted-foreground;
+}
+
+/* Animate the modal entrance */
+.limit-reached-modal .ant-modal-content {
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
