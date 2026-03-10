@@ -47,6 +47,7 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead title="Reset Password" description="Reset your QR Studio account password securely." path="/forgot-password" noindex />
       {/* SEO */}
       <header className="sr-only">
         <h1>Reset Password - QR Studio</h1>

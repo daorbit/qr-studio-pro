@@ -191,6 +191,7 @@ const OTPVerification: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead title="Verify Your Account" description="Verify your QR Studio account with OTP." path="/otp-verification" noindex />
       {/* SEO */}
       <header className="sr-only">
         <h1>{getTitle()} - QR Studio</h1>
