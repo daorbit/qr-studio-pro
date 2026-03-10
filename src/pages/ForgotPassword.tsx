@@ -3,6 +3,7 @@ import { Input, Button, Typography, message, Breadcrumb } from "antd";
 import { Home, Mail, KeyRound, Shield, Zap } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "@/lib/api";
+import SEOHead from "@/components/SEOHead";
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead title="Reset Password" description="Reset your QR Studio account password securely." path="/forgot-password" noindex />
       {/* SEO */}
       <header className="sr-only">
         <h1>Reset Password - QR Studio</h1>

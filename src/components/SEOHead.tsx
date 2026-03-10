@@ -11,6 +11,7 @@ interface SEOHeadProps {
   type?: string;
   noindex?: boolean;
   structuredData?: object | object[];
+  keywords?: string;
 }
 
 const SEOHead = ({
@@ -20,6 +21,7 @@ const SEOHead = ({
   type = "website",
   noindex = false,
   structuredData,
+  keywords,
 }: SEOHeadProps) => {
   const url = `${SITE_URL}${path}`;
   const fullTitle = path === "/" ? title : `${title} | ${SITE_NAME}`;
@@ -28,8 +30,9 @@ const SEOHead = ({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
+      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1"} />
       <link rel="canonical" href={url} />
+      {keywords && <meta name="keywords" content={keywords} />}
 
       {/* Open Graph */}
       <meta property="og:type" content={type} />
@@ -37,7 +40,11 @@ const SEOHead = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={DEFAULT_IMAGE} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={fullTitle} />
       <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:locale" content="en_US" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -45,6 +52,7 @@ const SEOHead = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={DEFAULT_IMAGE} />
+      <meta name="twitter:image:alt" content={fullTitle} />
 
       {/* Structured Data */}
       {structuredData && (

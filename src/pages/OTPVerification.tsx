@@ -5,6 +5,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authAPI } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import OTPInput from '@/components/common/OTPInput';
+import SEOHead from '@/components/SEOHead';
 import { 
   passwordRequirements, 
   getPasswordStrength, 
@@ -190,6 +191,7 @@ const OTPVerification: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead title="Verify Your Account" description="Verify your QR Studio account with OTP." path="/otp-verification" noindex />
       {/* SEO */}
       <header className="sr-only">
         <h1>{getTitle()} - QR Studio</h1>
