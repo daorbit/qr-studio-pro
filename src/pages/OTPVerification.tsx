@@ -5,6 +5,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authAPI } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import OTPInput from '@/components/common/OTPInput';
+import SEOHead from '@/components/SEOHead';
 import { 
   passwordRequirements, 
   getPasswordStrength, 

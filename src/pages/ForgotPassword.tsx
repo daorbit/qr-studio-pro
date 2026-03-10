@@ -3,6 +3,7 @@ import { Input, Button, Typography, message, Breadcrumb } from "antd";
 import { Home, Mail, KeyRound, Shield, Zap } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "@/lib/api";
+import SEOHead from "@/components/SEOHead";
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();

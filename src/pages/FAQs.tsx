@@ -98,8 +98,24 @@ const FAQs: React.FC = () => {
     )
   })).filter(category => category.faqs.length > 0);
 
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqCategories.flatMap(cat => cat.faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": { "@type": "Answer", "text": faq.answer }
+    })))
+  };
+
   return (
     <DashboardLayout>
+      <SEOHead
+        title="FAQs - QR Code Generator Help"
+        description="Frequently asked questions about QR Studio. Learn about QR code types, customization, analytics, downloads, data security and more."
+        path="/faqs"
+        structuredData={faqStructuredData}
+      />
       <div className="max-w-4xl mx-auto animate-fade-in">
         {/* Header */}
         <div className="text-center mb-6 md:mb-8">
