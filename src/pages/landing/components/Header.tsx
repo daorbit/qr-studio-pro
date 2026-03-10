@@ -56,6 +56,12 @@ const Header = () => {
             >
               Analytics
             </a>
+            <Link
+              to="/blog"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Blog
+            </Link>
           </nav>
 
           {/* CTA Buttons */}
