@@ -38,6 +38,12 @@ const Footer = () => {
               Privacy Policy
             </Link>
             <Link
+              to="/blog"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Blog
+            </Link>
+            <Link
               to="/terms-and-conditions"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >

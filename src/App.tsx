@@ -149,6 +149,8 @@ const AppContent = () => {
                 element={<ProtectedRoute><PricingPage /></ProtectedRoute>}
               />
               <Route path="/faqs" element={<FAQs />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/shipping-policy" element={<ShippingPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

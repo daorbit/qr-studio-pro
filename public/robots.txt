@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/
 Allow: /faqs
 Allow: /contact
 Allow: /signup
