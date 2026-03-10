@@ -13,6 +13,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import DashboardLayout from '../components/layout/DashboardLayout';
+import SEOHead from '@/components/SEOHead';
 
 const { Title, Text, Paragraph } = Typography;
 
