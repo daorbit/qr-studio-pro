@@ -57,10 +57,10 @@ const Header = () => {
               Analytics
             </a>
             <Link
-              to="/blog"
+              to="/faqs"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Blog
+              FAQs
             </Link>
           </nav>
 
