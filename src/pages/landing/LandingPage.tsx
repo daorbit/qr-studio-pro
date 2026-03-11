@@ -12,6 +12,8 @@ import SecuritySection from "./components/SecuritySection";
 import TemplatesShowcase from "./components/TemplatesShowcase";
 import UseCasesSection from "./components/UseCasesSection";
 import CustomizationSection from "./components/CustomizationSection";
+import PricingComparisonSection from "./components/PricingComparisonSection";
+import IntegrationPartnersSection from "./components/IntegrationPartnersSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import FAQSection from "./components/FAQSection";
 import CTASection from "./components/CTASection";
