@@ -34,8 +34,6 @@ const CompareQRCodesPage = lazy(() => import("./pages/CompareQRCodes"));
 const Redirector = lazy(() => import("./pages/Redirector"));
 const QRUnavailable = lazy(() => import("./pages/QRUnavailable"));
 const FAQs = lazy(() => import("./pages/FAQs"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Submissions = lazy(() => import("./pages/Submissions"));
 const AdminDataPage = lazy(() => import("./pages/AdminData"));
