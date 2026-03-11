@@ -68,16 +68,22 @@ const FAQSection = () => {
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`h-4 w-4 shrink-0 ml-2 text-muted-foreground transition-transform duration-200 ${
+                    className={`h-4 w-4 shrink-0 ml-2 text-muted-foreground transition-transform duration-300 ease-out ${
                       openIndex === i ? "rotate-180" : ""
                     }`}
                   />
                 </button>
-                {openIndex === i && (
-                  <div className="px-4 pb-3 text-xs text-muted-foreground leading-relaxed animate-fade-in">
-                    {faq.a}
+                <div
+                  className={`grid transition-all duration-300 ease-out ${
+                    openIndex === i ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-4 pb-3 text-xs text-muted-foreground leading-relaxed">
+                      {faq.a}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
