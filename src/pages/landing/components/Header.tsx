@@ -129,11 +129,11 @@ const Header = () => {
                 Analytics
               </a>
               <Link
-                to="/blog"
+                to="/faqs"
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-3 py-2 hover:bg-muted rounded-lg transition-colors text-xs"
               >
-                Blog
+                FAQs
               </Link>
               <div className="flex gap-2 px-3 pt-3">
                 <Button
