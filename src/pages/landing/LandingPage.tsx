@@ -138,6 +138,8 @@ const LandingPage = () => {
       <TemplatesShowcase />
       <UseCasesSection />
       <CustomizationSection />
+      <TestimonialsSection />
+      <FAQSection />
       <CTASection />
       <Footer />
     </div>
