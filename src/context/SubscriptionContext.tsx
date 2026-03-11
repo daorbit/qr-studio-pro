@@ -269,7 +269,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
         return new Promise((resolve) => {
           // Add timeout for cleanup
-          let timeoutId: NodeJS.Timeout;
+          let timeoutId: ReturnType<typeof setTimeout>;
           let isResolved = false;
 
           const resolveOnce = (result: boolean) => {

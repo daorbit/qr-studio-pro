@@ -12,6 +12,8 @@ import SecuritySection from "./components/SecuritySection";
 import TemplatesShowcase from "./components/TemplatesShowcase";
 import UseCasesSection from "./components/UseCasesSection";
 import CustomizationSection from "./components/CustomizationSection";
+import TestimonialsSection from "./components/TestimonialsSection";
+import FAQSection from "./components/FAQSection";
 import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -136,6 +138,8 @@ const LandingPage = () => {
       <TemplatesShowcase />
       <UseCasesSection />
       <CustomizationSection />
+      <TestimonialsSection />
+      <FAQSection />
       <CTASection />
       <Footer />
     </div>
