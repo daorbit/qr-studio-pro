@@ -353,7 +353,7 @@ const QRCodeCard: React.FC<QRCodeCardProps> = React.memo(
             open={downloadModalOpen}
             onCancel={() => setDownloadModalOpen(false)}
             footer={null}
-            width={480}
+            width={Math.min(480, window.innerWidth - 32)}
             centered
             className="qr-preview-modal"
             destroyOnHidden
