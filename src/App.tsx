@@ -48,9 +48,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const queryClient = new QueryClient();
 
 const LazyFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <LogoLoader />
-  </div>
+  <div className="min-h-screen bg-background" />
 );
 
 const AppContent = () => {

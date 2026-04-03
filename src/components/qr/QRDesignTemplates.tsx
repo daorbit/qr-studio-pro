@@ -206,9 +206,9 @@ const QRDesignTemplates: React.FC<QRDesignTemplatesProps> = ({
         className="mb-6"
       />
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={[12, 12]}>
         {currentTemplates.map((template) => (
-          <Col key={template.id} xs={12} sm={8} md={6}>
+          <Col key={template.id} xs={12} sm={8} md={8} lg={6}>
             <div
               onClick={() => handleSelectTemplate(template)}
               className={`

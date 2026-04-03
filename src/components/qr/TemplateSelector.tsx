@@ -1,8 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { CheckCircleFilled } from '@ant-design/icons';
-import { QrCode, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QrCode, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { QRTemplate, defaultTemplates } from '../../types/qrcode';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TemplateSelectorProps {
   selectedTemplate: QRTemplate | null;
@@ -123,10 +128,10 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
           <div
             className={cn(
               "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
-              "hover:shadow-md hover:scale-[1.02]",
+              "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
               selectedTemplate === null
                 ? "ring-2 ring-primary shadow-md"
-                : "ring-1 ring-border/50 hover:ring-primary/50"
+                : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
             )}
             onClick={() => handleSelectTemplate(null)}
           >
@@ -150,19 +155,20 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
         )}
 
         {currentTemplates.map((template) => (
-          <div
-            key={template.id}
-            className={cn(
-              "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
-              "hover:shadow-md hover:scale-[1.02]",
-              selectedTemplate?.id === template.id
-                ? "ring-2 ring-primary shadow-md"
-                : "ring-1 ring-border/50 hover:ring-primary/50"
-            )}
-            onClick={() => handleSelectTemplate(template)}
-          >
+          <Tooltip key={template.id}>
+            <TooltipTrigger asChild>
             <div
-              className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
+              className={cn(
+                "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
+                "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
+                selectedTemplate?.id === template.id
+                  ? "ring-2 ring-primary shadow-md"
+                  : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
+              )}
+              onClick={() => handleSelectTemplate(template)}
+            >
+              <div
+                className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
               style={{
                 background: template.showGradient && template.gradientColor
                   ? `linear-gradient(${template.gradientDirection === 'to-bottom' ? '180deg' : template.gradientDirection === 'to-right' ? '90deg' : template.gradientDirection === 'to-top-right' ? '45deg' : '135deg'}, ${template.backgroundColor} 0%, ${template.gradientColor} 100%)`
@@ -201,10 +207,22 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
                 <div className="w-5 h-5 bg-gray-800 rounded-sm" />
               </div>
             </div>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Eye size={20} className="text-white drop-shadow-lg" />
+                </div>
+              </div>
             <div className="px-3 py-2.5 bg-card text-center border-t border-border/40">
               <span className="text-xs font-semibold truncate block text-foreground">{template.name}</span>
             </div>
           </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              <p className="font-medium">{template.name}</p>
+              <p className="text-muted-foreground">Click to apply</p>
+            </TooltipContent>
+          </Tooltip>
         ))}
       </div>
 
