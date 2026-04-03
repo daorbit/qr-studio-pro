@@ -128,10 +128,10 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
           <div
             className={cn(
               "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
-              "hover:shadow-md hover:scale-[1.02]",
+              "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
               selectedTemplate === null
                 ? "ring-2 ring-primary shadow-md"
-                : "ring-1 ring-border/50 hover:ring-primary/50"
+                : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
             )}
             onClick={() => handleSelectTemplate(null)}
           >
