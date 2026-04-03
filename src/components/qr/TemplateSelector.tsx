@@ -207,10 +207,22 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
                 <div className="w-5 h-5 bg-gray-800 rounded-sm" />
               </div>
             </div>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Eye size={20} className="text-white drop-shadow-lg" />
+                </div>
+              </div>
             <div className="px-3 py-2.5 bg-card text-center border-t border-border/40">
               <span className="text-xs font-semibold truncate block text-foreground">{template.name}</span>
             </div>
           </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              <p className="font-medium">{template.name}</p>
+              <p className="text-muted-foreground">Click to apply</p>
+            </TooltipContent>
+          </Tooltip>
         ))}
       </div>
 
