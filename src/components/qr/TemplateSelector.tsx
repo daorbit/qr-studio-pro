@@ -1,8 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { CheckCircleFilled } from '@ant-design/icons';
-import { QrCode, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QrCode, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { QRTemplate, defaultTemplates } from '../../types/qrcode';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TemplateSelectorProps {
   selectedTemplate: QRTemplate | null;
