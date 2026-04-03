@@ -155,19 +155,20 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
         )}
 
         {currentTemplates.map((template) => (
-          <div
-            key={template.id}
-            className={cn(
-              "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
-              "hover:shadow-md hover:scale-[1.02]",
-              selectedTemplate?.id === template.id
-                ? "ring-2 ring-primary shadow-md"
-                : "ring-1 ring-border/50 hover:ring-primary/50"
-            )}
-            onClick={() => handleSelectTemplate(template)}
-          >
+          <Tooltip key={template.id}>
+            <TooltipTrigger asChild>
             <div
-              className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
+              className={cn(
+                "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
+                "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
+                selectedTemplate?.id === template.id
+                  ? "ring-2 ring-primary shadow-md"
+                  : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
+              )}
+              onClick={() => handleSelectTemplate(template)}
+            >
+              <div
+                className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
               style={{
                 background: template.showGradient && template.gradientColor
                   ? `linear-gradient(${template.gradientDirection === 'to-bottom' ? '180deg' : template.gradientDirection === 'to-right' ? '90deg' : template.gradientDirection === 'to-top-right' ? '45deg' : '135deg'}, ${template.backgroundColor} 0%, ${template.gradientColor} 100%)`
