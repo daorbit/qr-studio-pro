@@ -155,20 +155,19 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
         )}
 
         {currentTemplates.map((template) => (
-          <Tooltip key={template.id}>
-            <TooltipTrigger asChild>
+          <div
+            key={template.id}
+            className={cn(
+              "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
+              "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
+              selectedTemplate?.id === template.id
+                ? "ring-2 ring-primary shadow-md"
+                : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
+            )}
+            onClick={() => handleSelectTemplate(template)}
+          >
             <div
-              className={cn(
-                "group rounded-xl cursor-pointer transition-all duration-200 overflow-hidden",
-                "hover:shadow-lg hover:scale-[1.03] hover:-translate-y-1",
-                selectedTemplate?.id === template.id
-                  ? "ring-2 ring-primary shadow-md"
-                  : "ring-1 ring-border/50 hover:ring-primary/40 hover:shadow-primary/10"
-              )}
-              onClick={() => handleSelectTemplate(template)}
-            >
-              <div
-                className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
+              className="h-32 sm:h-36 flex flex-col items-center justify-center relative p-3"
               style={{
                 background: template.showGradient && template.gradientColor
                   ? `linear-gradient(${template.gradientDirection === 'to-bottom' ? '180deg' : template.gradientDirection === 'to-right' ? '90deg' : template.gradientDirection === 'to-top-right' ? '45deg' : '135deg'}, ${template.backgroundColor} 0%, ${template.gradientColor} 100%)`
@@ -179,7 +178,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
             >
               {selectedTemplate?.id === template.id && (
                 <div
-                  className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center"
+                  className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
                   style={{ backgroundColor: template.textColor }}
                 >
                   <CheckCircleFilled
@@ -206,23 +205,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = React.memo(({
               <div className="mt-2 w-7 h-7 bg-white/90 rounded flex items-center justify-center shadow-sm">
                 <div className="w-5 h-5 bg-gray-800 rounded-sm" />
               </div>
-            </div>
               {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 flex items-center justify-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Eye size={20} className="text-white drop-shadow-lg" />
-                </div>
-              </div>
+              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-200 pointer-events-none" />
+            </div>
             <div className="px-3 py-2.5 bg-card text-center border-t border-border/40">
               <span className="text-xs font-semibold truncate block text-foreground">{template.name}</span>
             </div>
           </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              <p className="font-medium">{template.name}</p>
-              <p className="text-muted-foreground">Click to apply</p>
-            </TooltipContent>
-          </Tooltip>
         ))}
       </div>
 
