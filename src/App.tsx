@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from "react-redux";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
 import { Analytics } from "@vercel/analytics/react";
 import { store } from "./store";
@@ -17,9 +17,6 @@ import RouteChangeListener from "./components/RouteChangeListener";
 import GlobalDialogs from "./components/layout/GlobalDialogs";
 import { hslToRgb } from "./utils/colorUtils";
 import LogoLoader from "./components/common/LogoLoader";
-
-// Eagerly load landing page for FCP
-import LandingPage from "./pages/landing/LandingPage";
 
 // Lazy load all other pages
 const SignIn = lazy(() => import("./pages/SignIn"));
@@ -83,7 +80,7 @@ const AppContent = () => {
           <RouteChangeListener />
           <Suspense fallback={<LazyFallback />}>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<Navigate to="/sign-in" replace />} />
               <Route path="/sign-in" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
