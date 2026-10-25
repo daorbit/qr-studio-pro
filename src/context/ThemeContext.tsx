@@ -10,6 +10,8 @@ export { ThemeContext };
 const THEME_STORAGE_KEY = 'qc_theme';
 const MODE_STORAGE_KEY = 'qc_theme_mode';
 
+const toDarkTint = (hsl: string) => hsl.replace(/\d+(\.\d+)?%\s*$/, '14%');
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('orange');
   const [mode, setModeState] = useState<ThemeMode>('system');
@@ -53,14 +55,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const themeColors = effectiveMode === 'dark' && theme.darkColors ? theme.darkColors : theme.colors;
     const root = document.documentElement;
 
+    const isDark = effectiveMode === 'dark';
+    const primaryLight = isDark && !theme.darkColors ? toDarkTint(themeColors.primaryLight) : themeColors.primaryLight;
+
     root.style.setProperty('--primary', themeColors.primary);
     root.style.setProperty('--primary-foreground', themeColors.primaryForeground);
-    root.style.setProperty('--primary-light', themeColors.primaryLight);
-    root.style.setProperty('--accent', themeColors.accent);
-    root.style.setProperty('--accent-foreground', themeColors.accentForeground);
+    root.style.setProperty('--primary-light', primaryLight);
     root.style.setProperty('--ring', themeColors.ring);
     root.style.setProperty('--sidebar-primary', themeColors.sidebarPrimary);
-    root.style.setProperty('--sidebar-accent', themeColors.sidebarAccent);
+    if (isDark) {
+      root.style.removeProperty('--sidebar-accent');
+    } else {
+      root.style.setProperty('--sidebar-accent', themeColors.sidebarAccent);
+    }
 
     // Check if it's a gradient theme
     const isGradient = currentTheme.startsWith('gradient_');
@@ -70,7 +77,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         `linear-gradient(135deg, hsl(${themeColors.primary}) 0%, hsl(${themeColors.accent}) 100%)`
       );
     } else {
-      root.style.setProperty('--gradient-bg', `hsl(${themeColors.primaryLight})`);
+      root.style.setProperty('--gradient-bg', `hsl(${primaryLight})`);
     }
 
     root.setAttribute('data-theme', currentTheme);

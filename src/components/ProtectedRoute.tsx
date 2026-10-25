@@ -1,21 +1,28 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import LogoLoader from '@/components/common/LogoLoader';
+import WorkspaceGate from './WorkspaceGate';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireWorkspace?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireWorkspace = true }) => {
   const { user, loading, initialized } = useAuth();
+  const location = useLocation();
 
-  // While loading or not initialized, show a centered spinner
   if (loading || !initialized) {
     return <LogoLoader fullScreen />;
   }
 
   if (!user) {
-    return <Navigate to="/sign-in" replace />;
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/sign-in?next=${next}`} replace />;
   }
 
-  return <>{children}</>;
+  return requireWorkspace ? <WorkspaceGate>{children}</WorkspaceGate> : <>{children}</>;
 };
 
 export default ProtectedRoute;

@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, UnknownAction } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import qrCodesReducer from './slices/qrCodesSlice';
 import authReducer from './slices/authSlice';
@@ -8,18 +8,35 @@ import contactsReducer from './slices/contactsSlice';
 import qrAnalyticsReducer from './slices/qrAnalyticsSlice';
 import statsReducer from './slices/statsSlice';
 import adminReducer from './slices/adminSlice';
+import workspaceReducer, { resetWorkspaces, workspaceSwitched } from './slices/workspaceSlice';
+
+const appReducer = combineReducers({
+  qrCodes: qrCodesReducer,
+  auth: authReducer,
+  ui: uiReducer,
+  analytics: analyticsReducer,
+  contacts: contactsReducer,
+  qrAnalytics: qrAnalyticsReducer,
+  stats: statsReducer,
+  admin: adminReducer,
+  workspace: workspaceReducer,
+});
+
+type AppState = ReturnType<typeof appReducer>;
+
+const WORKSPACE_SCOPED: (keyof AppState)[] = ['qrCodes', 'analytics', 'qrAnalytics', 'stats'];
+
+const rootReducer = (state: AppState | undefined, action: UnknownAction): AppState => {
+  if (state && (workspaceSwitched.match(action) || resetWorkspaces.match(action))) {
+    const cleared = { ...state } as Partial<AppState>;
+    WORKSPACE_SCOPED.forEach((key) => delete cleared[key]);
+    return appReducer(cleared as AppState, action);
+  }
+  return appReducer(state, action);
+};
 
 export const store = configureStore({
-  reducer: {
-    qrCodes: qrCodesReducer,
-    auth: authReducer,
-    ui: uiReducer,
-    analytics: analyticsReducer,
-    contacts: contactsReducer,
-    qrAnalytics: qrAnalyticsReducer,
-    stats: statsReducer,
-    admin: adminReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

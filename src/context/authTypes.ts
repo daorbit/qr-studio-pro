@@ -19,14 +19,7 @@ export type User = {
   language?: string;
   timezone?: string;
   timeFormat?: '12' | '24';
-  removeWatermark?: boolean;
-  watermarkText?: string;
-  whiteLabel?: WhiteLabelConfig;
-  subscriptionPlan?: 'free' | 'basic' | 'pro' | 'enterprise' | 'trial';
-  subscriptionStatus?: 'active' | 'inactive' | 'expired' | 'cancelled';
-  isOnTrial?: boolean;
-  trialStartDate?: string;
-  trialEndDate?: string;
+  hasPassword?: boolean;
 };
 
 export type AuthContextType = {

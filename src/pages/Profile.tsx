@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Tabs } from 'antd';
-import { User, Palette, Shield, Droplets, Tag, CreditCard, Crown } from 'lucide-react';
+import { User, Palette, Shield, Droplets, Tag, CreditCard, Crown, Building2, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import ProfileInfo from './settings/ProfileInfo';
@@ -9,6 +9,8 @@ import SecuritySettings from './settings/SecuritySettings';
 import WatermarkSettings from '@/components/settings/WatermarkSettings';
 import WhiteLabelSettings from '@/components/settings/WhiteLabelSettings';
 import SubscriptionManagement from '@/components/payment/SubscriptionManagement';
+import WorkspaceGeneralSettings from '@/components/workspace/WorkspaceGeneralSettings';
+import MembersPanel from '@/components/workspace/members/MembersPanel';
 import { MobileSettingsNavigation, MobileSettingsActionBar } from '@/components/mobile/settings';
 import { usePayment } from '@/hooks/usePayment';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -27,20 +29,7 @@ const Profile: React.FC = () => {
   const canUseWhiteLabel = hasFeatureAccess('whiteLabel');
 
   useEffect(() => {
-    const path = location.pathname;
-    if (path === '/settings' || path === '/settings/profile') {
-      setActiveKey('profile');
-    } else if (path === '/settings/theme') {
-      setActiveKey('theme');
-    } else if (path === '/settings/watermark') {
-      setActiveKey('watermark');
-    } else if (path === '/settings/whitelabel') {
-      setActiveKey('whitelabel');
-    } else if (path === '/settings/subscription') {
-      setActiveKey('subscription');
-    } else if (path === '/settings/security') {
-      setActiveKey('security');
-    }
+    setActiveKey(location.pathname.split('/')[2] || 'profile');
   }, [location.pathname]);
 
   const handleTabChange = (key: string) => {
@@ -58,6 +47,26 @@ const Profile: React.FC = () => {
         </span>
       ),
       children: <ProfileInfo />,
+    },
+    {
+      key: 'workspace',
+      label: (
+        <span className="flex items-center gap-2">
+          <Building2 size={16} />
+          Workspace
+        </span>
+      ),
+      children: <WorkspaceGeneralSettings />,
+    },
+    {
+      key: 'members',
+      label: (
+        <span className="flex items-center gap-2">
+          <Users size={16} />
+          Members
+        </span>
+      ),
+      children: <MembersPanel />,
     },
     {
       key: 'theme',
@@ -119,6 +128,18 @@ const Profile: React.FC = () => {
       title: 'Account',
       description: 'Manage your personal information.',
       icon: <User size={20} />,
+    },
+    {
+      key: 'workspace',
+      title: 'Workspace',
+      description: 'Name, plan and danger zone',
+      icon: <Building2 size={20} />,
+    },
+    {
+      key: 'members',
+      title: 'Members',
+      description: 'Invite teammates and manage roles',
+      icon: <Users size={20} />,
     },
     {
       key: 'theme',

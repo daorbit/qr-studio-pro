@@ -1,0 +1,26 @@
+.auth-form .ant-input-affix-wrapper,
+.auth-form .ant-input {
+  height: 46px !important;
+  border-radius: 10px !important;
+  background: hsl(var(--card)) !important;
+}
+
+.auth-form .ant-input-affix-wrapper > input.ant-input {
+  height: auto !important;
+  background: transparent !important;
+}
+
+.auth-form .ant-btn:not(.ant-btn-link) {
+  height: 46px !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .auth-form .ant-input-affix-wrapper,
+  .auth-form .ant-input,
+  .auth-form .ant-btn:not(.ant-btn-link) {
+    height: 50px !important;
+    border-radius: 12px !important;
+  }
+}

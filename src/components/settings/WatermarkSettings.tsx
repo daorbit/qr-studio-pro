@@ -2,44 +2,28 @@ import React, { useState } from 'react';
 import { Card, Typography, Switch, Input, message, Button, Tooltip, Alert } from 'antd';
 import { Droplets, Save, HelpCircle, Crown, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { usePayment } from '@/hooks/usePayment';
-import { authAPI } from '@/lib/api';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 const { Title, Text } = Typography;
 
 const WatermarkSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
-  const { subscription, hasFeatureAccess } = usePayment();
+  const { workspace, canManage, updateWorkspace } = useWorkspace();
+  const { hasFeatureAccess } = usePayment();
   const [loading, setLoading] = useState(false);
-  const [removeWatermark, setRemoveWatermark] = useState(user?.removeWatermark || false);
-  const [watermarkText, setWatermarkText] = useState(user?.watermarkText || 'QR Studio');
+  const [removeWatermark, setRemoveWatermark] = useState(workspace?.removeWatermark || false);
+  const [watermarkText, setWatermarkText] = useState(workspace?.watermarkText || 'QR Studio');
 
-  // Check if user has access to watermark features
-  const canRemoveWatermark = hasFeatureAccess('removeWatermark');
+  const canRemoveWatermark = hasFeatureAccess('removeWatermark') && canManage;
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      
-      const formData = new FormData();
-      formData.append('name', user?.name || '');
-      formData.append('removeWatermark', String(removeWatermark));
-      formData.append('watermarkText', watermarkText);
-
-      const response = await authAPI.updateProfile(formData);
-
-      if (response.success) {
-        updateUser({
-          ...response.user,
-          removeWatermark,
-          watermarkText,
-        });
-        message.success('Watermark settings saved successfully');
-      }
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Failed to save settings');
+      await updateWorkspace({ removeWatermark, watermarkText: watermarkText.trim() });
+      message.success('Watermark settings saved for this workspace');
+    } catch (error) {
+      message.error(typeof error === 'string' ? error : 'Failed to save settings');
     } finally {
       setLoading(false);
     }

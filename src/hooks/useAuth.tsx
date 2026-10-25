@@ -12,6 +12,7 @@ import {
   selectAuthInitialized,
   selectAuthInitializing,
 } from '@/store/slices/authSlice';
+import { resetWorkspaces } from '@/store/slices/workspaceSlice';
 import type { User } from '@/context/authTypes';
 
 /**
@@ -47,6 +48,7 @@ export const useAuth = () => {
   );
 
   const signout = useCallback(() => {
+    dispatch(resetWorkspaces());
     dispatch(signOut());
   }, [dispatch]);
 

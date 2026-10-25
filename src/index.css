@@ -6,99 +6,115 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 240 11% 96%;
+    --foreground: 240 3% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 3% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 3% 12%;
 
-    --primary: 262 83% 58%;
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 262 83% 96%;
+    --primary-light: 25 95% 96%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 240 11% 94%;
+    --secondary-foreground: 240 3% 12%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 11% 94%;
+    --muted-foreground: 240 4% 45%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 10% 93%;
+    --accent-foreground: 240 3% 12%;
 
-    --success: 142 76% 36%;
+    --cta: 240 3% 12%;
+    --cta-hover: 240 1% 20%;
+    --cta-foreground: 0 0% 100%;
+
+    --success: 142 72% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 100% 43%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 358 75% 59%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --input-background: 210 40% 98%;
-    --ring: 262 83% 58%;
+    --border: 240 11% 91%;
+    --input: 240 8% 86%;
+    --input-background: 0 0% 100%;
+    --ring: 25 95% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-primary: 262 83% 58%;
+    --shadow-soft: 0 1px 2px rgba(16, 18, 24, 0.04);
+    --shadow-card: 0 1px 2px rgba(16, 18, 24, 0.05), 0 12px 32px -10px rgba(16, 18, 24, 0.16);
+    --shadow-float: 0 2px 6px rgba(16, 18, 24, 0.06), 0 24px 56px -14px rgba(16, 18, 24, 0.22);
+
+    --sidebar-background: 240 11% 96%;
+    --sidebar-foreground: 240 3% 12%;
+    --sidebar-border: 240 11% 91%;
+    --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 83% 96%;
-    --sidebar-accent-foreground: 262 83% 30%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-accent: 25 95% 96%;
+    --sidebar-accent-foreground: 25 90% 32%;
+    --sidebar-ring: 25 95% 53%;
   }
 
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 90%;
+    --background: 220 12% 5%;
+    --foreground: 240 9% 95%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 90%;
+    --card: 228 8% 9.5%;
+    --card-foreground: 240 9% 95%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 90%;
+    --popover: 228 8% 12%;
+    --popover-foreground: 240 9% 95%;
 
-    --primary: 262 83% 58%;
+    --primary: 25 95% 56%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 262 83% 15%;
+    --primary-light: 25 60% 14%;
 
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 228 7% 14%;
+    --secondary-foreground: 240 9% 95%;
 
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 64%;
+    --muted: 228 8% 12%;
+    --muted-foreground: 229 5% 56%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 228 7% 15%;
+    --accent-foreground: 240 9% 95%;
 
-    --success: 142 76% 36%;
+    --cta: 240 9% 96%;
+    --cta-hover: 240 8% 90%;
+    --cta-foreground: 240 3% 12%;
+
+    --success: 135 64% 50%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 36 100% 63%;
+    --warning-foreground: 240 3% 12%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 358 100% 69%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --input-background: 0 0% 10%;
-    --ring: 262 83% 58%;
+    --border: 230 7% 17%;
+    --input: 231 7% 20%;
+    --input-background: 220 8% 7%;
+    --ring: 25 95% 56%;
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-primary: 262 83% 58%;
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+    --shadow-float: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 56px -12px rgba(0, 0, 0, 0.7);
+
+    --sidebar-background: 220 12% 5%;
+    --sidebar-foreground: 240 9% 95%;
+    --sidebar-border: 230 7% 17%;
+    --sidebar-primary: 25 95% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 262 83% 70%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-accent: 228 7% 14%;
+    --sidebar-accent-foreground: 25 95% 66%;
+    --sidebar-ring: 25 95% 56%;
   }
 
   /* Prevent mobile zoom on input focus */
@@ -138,7 +154,17 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
   }
 }
 
@@ -197,17 +223,25 @@
 /* ============================== */
 /* Ant Design - Buttons           */
 /* ============================== */
-.ant-btn-primary {
-  background: hsl(var(--primary)) !important;
-  border-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
+.ant-btn {
+  font-weight: 500;
+  letter-spacing: -0.005em;
   box-shadow: none !important;
 }
 
-.ant-btn-primary:hover {
-  background: hsl(var(--primary)) !important;
-  border-color: hsl(var(--primary)) !important;
-  opacity: 0.9;
+.ant-btn-primary:not(.ant-btn-dangerous) {
+  background: hsl(var(--cta)) !important;
+  border-color: hsl(var(--cta)) !important;
+  color: hsl(var(--cta-foreground)) !important;
+}
+
+.ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover {
+  background: hsl(var(--cta-hover)) !important;
+  border-color: hsl(var(--cta-hover)) !important;
+}
+
+.ant-btn-primary:disabled {
+  opacity: 0.5;
 }
 
 .ant-btn-default {
@@ -216,10 +250,10 @@
   color: hsl(var(--foreground)) !important;
 }
 
-.ant-btn-default:hover {
-  border-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary)) !important;
-  background: hsl(var(--card)) !important;
+.ant-btn-default:not(:disabled):hover {
+  border-color: hsl(var(--input)) !important;
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--muted)) !important;
 }
 
 .ant-btn-text {
@@ -287,13 +321,9 @@
 /* ============================== */
 .ant-card {
   background: hsl(var(--card)) !important;
-  border-radius: 12px !important;
+  border-radius: 16px !important;
   border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 1px 3px hsl(var(--foreground) / 0.05) !important;
-}
-
-.ant-card:hover {
-  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08) !important;
+  box-shadow: var(--shadow-soft) !important;
 }
 
 .ant-card-head {
@@ -410,7 +440,7 @@ background: hsl(var(--input-background)) !important;
 .ant-select-dropdown {
   background: hsl(var(--popover)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
+  box-shadow: var(--shadow-float) !important;
 }
 
 .ant-select-item {
@@ -465,7 +495,7 @@ background: hsl(var(--input-background)) !important;
 .ant-picker-dropdown .ant-picker-panel-container {
   background: hsl(var(--popover)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
+  box-shadow: var(--shadow-float) !important;
 }
 
 .ant-picker-panel {
@@ -523,8 +553,9 @@ background: hsl(var(--input-background)) !important;
 .ant-modal-content {
   background: hsl(var(--card)) !important;
   color: hsl(var(--foreground)) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 20px 60px hsl(var(--foreground) / 0.25) !important;
+  border-radius: 20px !important;
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-float) !important;
 }
 
 .ant-popover-container{
@@ -563,7 +594,9 @@ background: hsl(var(--input-background)) !important;
 }
 
 .ant-modal-mask {
-  background: hsl(var(--foreground) / 0.5) !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .ant-modal,
@@ -806,7 +839,7 @@ h5.ant-typography {
 /* ============================== */
 .ant-popover-inner {
   background: hsl(var(--popover)) !important;
-  box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
+  box-shadow: var(--shadow-float) !important;
 }
 
 .ant-popover-arrow::before {
@@ -1007,7 +1040,8 @@ h5.ant-typography {
 /* Ant Design - Switch            */
 /* ============================== */
 .ant-switch {
-  background: hsl(var(--muted-foreground)) !important;
+  background: hsl(var(--input)) !important;
+}
 
 /* ============================== */
 /* Admin Tabs Styling             */
@@ -1040,7 +1074,6 @@ h5.ant-typography {
   border: 1px solid hsl(var(--border)) !important;
   border-top: 2px solid hsl(var(--primary)) !important;
 }
-}
 
 .ant-switch-checked {
   background: hsl(var(--primary)) !important;
@@ -1071,7 +1104,7 @@ h5.ant-typography {
 .ant-dropdown-menu {
   background: hsl(var(--popover)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
+  box-shadow: var(--shadow-float) !important;
 }
 
 .ant-dropdown-menu-item {
@@ -1160,8 +1193,7 @@ h5.ant-typography {
 }
 
 .qr-template-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.12);
+  border-color: hsl(var(--input));
 }
 
 .qr-template-card.selected {
@@ -1657,97 +1689,47 @@ h5.ant-typography {
 
 /* 2. Glass-morphism Cards */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
 }
 
-.dark .glass-card {
-  background: rgba(15, 15, 15, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-}
-
-/* 3. Gradient Button with hover effect */
 .gradient-button {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(262 83% 48%) 100%);
+  background: hsl(var(--cta));
+  color: hsl(var(--cta-foreground));
   border: none;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.gradient-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.gradient-button:hover::before {
-  left: 100%;
+  transition: background-color 120ms ease;
 }
 
 .gradient-button:hover {
-   box-shadow: 0 10px 25px rgba(131, 88, 237, 0.4);
+  background: hsl(var(--cta-hover));
 }
 
-/* 4. Stat Card Hover Effect - Subtle shadow only */
 .stat-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 180ms ease;
   cursor: default;
 }
 
 .stat-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  border-color: hsl(var(--primary));
+  border-color: hsl(var(--input));
 }
 
-.dark .stat-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-}
-
-/* 5. Hover Lift Animation - Removed transform */
 .hover-lift {
-  transition: box-shadow 0.3s ease;
+  transition: border-color 180ms ease;
 }
 
 .hover-lift:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: hsl(var(--input));
 }
 
-/* 6. QR Card Animations */
 .qr-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 180ms ease;
   position: relative;
   overflow: hidden;
 }
 
-.qr-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(131, 88, 237, 0.1), transparent);
-  transition: left 0.5s ease;
-  z-index: 1;
-}
-
-.qr-card:hover::before {
-  left: 100%;
-}
-
 .qr-card:hover {
-   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
-  border-color: hsl(var(--primary));
+  border-color: hsl(var(--input));
 }
 
  
@@ -1781,8 +1763,7 @@ h5.ant-typography {
 }
 
 .ant-float-btn-group .ant-float-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 16px rgba(131, 88, 237, 0.3);
+  opacity: 0.9;
 }
 
 @keyframes fab-item-slide {
@@ -1798,7 +1779,7 @@ h5.ant-typography {
 
 /* 10. Gradient Background for Hero Sections */
 .gradient-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: hsl(var(--cta));
   position: relative;
   overflow: hidden;
 }
@@ -1862,12 +1843,6 @@ h5.ant-typography {
 /* 13. Interactive Chart Enhancements */
 .chart-container {
   position: relative;
-  transition: all 0.3s ease;
-}
-
-.chart-container:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* 14. Shimmer Loading Effect */
@@ -1909,17 +1884,16 @@ h5.ant-typography {
 .ant-input:focus,
 .ant-input-affix-wrapper:focus,
 .ant-input-affix-wrapper-focused {
-  box-shadow: 0 0 0 2px rgba(131, 88, 237, 0.2);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18);
   border-color: hsl(var(--primary));
 }
 
-/* 17. Card Compact Hover Enhancement */
 .card-compact {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 180ms ease;
 }
 
 .card-compact:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: hsl(var(--input));
 }
 
 /* 18. Responsive Animations - Reduce motion for accessibility */

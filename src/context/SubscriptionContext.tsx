@@ -11,6 +11,8 @@ import { message } from 'antd';
 import confetti from 'canvas-confetti';
 import { paymentAPI } from '@/lib/paymentApi';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppSelector } from '@/store';
+import { selectActiveWorkspaceId } from '@/store/slices/workspaceSlice';
 import type {
   Plans,
   Subscription,
@@ -21,7 +23,7 @@ import type {
 
 // --- In-flight request dedupe (prevents multi-mount / fast-refresh duplicates) ---
 let plansInFlight: Promise<void> | null = null;
-const subscriptionInFlightByUser = new Map<string, Promise<void>>();
+const subscriptionInFlightByScope = new Map<string, Promise<void>>();
 
 // Load Razorpay script
 const loadRazorpayScript = (): Promise<boolean> => {
@@ -70,7 +72,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user } = useAuth();
-  const userId = user?._id ?? null;
+  const activeWorkspaceId = useAppSelector(selectActiveWorkspaceId);
+  const scopeId = user && activeWorkspaceId ? activeWorkspaceId : null;
 
   const [plans, setPlans] = useState<Plans | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -81,7 +84,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Refs to prevent duplicate calls per mount
   const plansFetchedRef = useRef(false);
-  const subscriptionFetchedForUserRef = useRef<string | null>(null);
+  const subscriptionFetchedForScopeRef = useRef<string | null>(null);
 
   // Fetch plans (deduped across mounts)
   useEffect(() => {
@@ -119,19 +122,19 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Fetch subscription when user changes (deduped across mounts)
   useEffect(() => {
     const run = async () => {
-      if (!userId) {
+      if (!scopeId) {
         setSubscription(null);
-        subscriptionFetchedForUserRef.current = null;
+        subscriptionFetchedForScopeRef.current = null;
         return;
       }
 
-      if (subscriptionFetchedForUserRef.current === userId) return;
+      if (subscriptionFetchedForScopeRef.current === scopeId) return;
 
       // If another mount is already fetching subscription for this user, await it.
-      const existing = subscriptionInFlightByUser.get(userId);
+      const existing = subscriptionInFlightByScope.get(scopeId);
       if (existing) {
         await existing;
-        subscriptionFetchedForUserRef.current = userId;
+        subscriptionFetchedForScopeRef.current = scopeId;
         return;
       }
 
@@ -162,50 +165,50 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
           });
         } finally {
           setSubscriptionLoading(false);
-          subscriptionInFlightByUser.delete(userId);
+          subscriptionInFlightByScope.delete(scopeId);
         }
       })();
 
-      subscriptionInFlightByUser.set(userId, promise);
+      subscriptionInFlightByScope.set(scopeId, promise);
       await promise;
-      subscriptionFetchedForUserRef.current = userId;
+      subscriptionFetchedForScopeRef.current = scopeId;
     };
 
     run();
-  }, [userId]);
+  }, [scopeId]);
 
   // Refresh subscription (forces re-fetch)
   const refreshSubscription = useCallback(async () => {
-    if (!userId) return;
+    if (!scopeId) return;
 
     // clear local + in-flight so next call truly refetches
-    subscriptionFetchedForUserRef.current = null;
-    subscriptionInFlightByUser.delete(userId);
+    subscriptionFetchedForScopeRef.current = null;
+    subscriptionInFlightByScope.delete(scopeId);
 
     try {
       setSubscriptionLoading(true);
       const response = await paymentAPI.getSubscription();
       if (response.success) {
         setSubscription(response.subscription);
-        subscriptionFetchedForUserRef.current = userId;
+        subscriptionFetchedForScopeRef.current = scopeId;
       }
     } catch (error: any) {
       console.error('Error refreshing subscription:', error);
     } finally {
       setSubscriptionLoading(false);
     }
-  }, [userId]);
+  }, [scopeId]);
 
   // Refresh subscription features (updates database features)
   const refreshSubscriptionFeatures = useCallback(async () => {
-    if (!userId) return;
+    if (!scopeId) return;
 
     try {
       setLoading(true);
       const response = await paymentAPI.refreshSubscription();
       if (response.success) {
         setSubscription(response.subscription);
-        subscriptionFetchedForUserRef.current = userId;
+        subscriptionFetchedForScopeRef.current = scopeId;
         message.success('Subscription features updated successfully');
       } else {
         message.error('Failed to update subscription features');
@@ -216,7 +219,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [scopeId]);
 
   // Fetch payment history
   const fetchPaymentHistory = useCallback(async (page: number = 1, limit: number = 10) => {
@@ -306,11 +309,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
                     particleCount: 200,
                     spread: 70,
                     origin: { y: 0.6 },
-                    colors: ['#a855f7', '#8b5cf6', '#7c3aed', '#6366f1', '#4f46e5']
+                    colors: ['#f97316', '#fb923c', '#fdba74', '#1d1d1f', '#f5f5f7']
                   });
                   setSubscription(verifyResponse.subscription);
                   // Mark as fetched for this user
-                  if (userId) subscriptionFetchedForUserRef.current = userId;
+                  if (scopeId) subscriptionFetchedForScopeRef.current = scopeId;
                   // Call subscription API again to ensure latest data
                   await refreshSubscription();
                   resolveOnce(true);
@@ -340,7 +343,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
               duration,
             },
             theme: {
-              color: '#6366f1',
+              color: '#f97316',
             },
             modal: {
               ondismiss: () => {
@@ -393,7 +396,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     },
     // depend on the actual primitive fields used in prefill
-    [user?.name, user?.email, user?.mobile, userId, refreshSubscription]
+    [user?.name, user?.email, user?.mobile, scopeId, refreshSubscription]
   );
 
   // Cancel subscription
@@ -405,7 +408,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (response.success) {
         message.success('Subscription cancelled successfully');
         setSubscription(response.subscription);
-        if (userId) subscriptionFetchedForUserRef.current = userId;
+        if (scopeId) subscriptionFetchedForScopeRef.current = scopeId;
         return true;
       } else {
         message.error('Failed to cancel subscription');
@@ -418,7 +421,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [scopeId]);
 
   const hasFeatureAccess = useCallback(
     (feature: keyof Subscription['features']): boolean => {

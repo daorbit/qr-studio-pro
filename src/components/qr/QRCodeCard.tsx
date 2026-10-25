@@ -29,7 +29,7 @@ import { toPng, toJpeg } from "html-to-image";
 import { QRCodeData } from "../../types/qrcode";
 import QRCodePreview from "./QRCodePreview";
 import QRCodeOnly from "./QRCodeOnly";
-import { useAuth } from "../../hooks/useAuth";
+import { useWorkspace } from "../../hooks/useWorkspace";
 
 const { Text } = Typography;
 
@@ -59,7 +59,7 @@ const typeColors: Record<string, string> = {
 const QRCodeCard: React.FC<QRCodeCardProps> = React.memo(
   ({ qrCode, onEdit, onDelete, onToggleStatus, viewMode = "list" }) => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { workspace } = useWorkspace();
     const previewRef = useRef<HTMLDivElement>(null);
     const [downloadModalOpen, setDownloadModalOpen] = useState(false);
     const [downloadingFormat, setDownloadingFormat] = useState<
@@ -76,9 +76,9 @@ const QRCodeCard: React.FC<QRCodeCardProps> = React.memo(
     const isProtected =
       typeof qrCode.password === "string" && qrCode.password.trim().length > 0;
 
-    // Watermark settings from user profile
-    const showWatermark = !user?.removeWatermark;
-    const watermarkText = user?.watermarkText || "QR Studio";
+    // Watermark settings from the workspace
+    const showWatermark = !workspace?.removeWatermark;
+    const watermarkText = workspace?.watermarkText || "QR Studio";
 
     const handleDownload = useCallback(
       async (format: "png" | "jpg" | "webp") => {

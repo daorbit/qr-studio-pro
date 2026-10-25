@@ -68,7 +68,7 @@ const Contact: React.FC = () => {
       <div className="max-w-6xl mx-auto p-3 sm:p-6 animate-fade-in">
         {/* Header Section */}
         <div className="text-center mb-6 sm:mb-12">
-          <Title level={2} className="!text-xl sm:!text-2xl lg:!text-3xl mb-2 sm:mb-4 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          <Title level={2} className="!text-xl sm:!text-2xl lg:!text-3xl mb-2 sm:mb-4">
             Contact Us
           </Title>
           <Text type="secondary" className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto block">
@@ -91,7 +91,7 @@ const Contact: React.FC = () => {
                 {contactMethods.map((method, index) => (
                   <Card
                     key={index}
-                    className="cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4"
+                    className="cursor-pointer hover:border-input transition-colors border-l-4"
                     style={{ borderLeftColor: method.color }}
                     onClick={() =>
                       method.action.startsWith("http") || method.action.startsWith("/")
@@ -114,7 +114,7 @@ const Contact: React.FC = () => {
               </div>
 
               {/* Additional Info */}
-              <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+              <Card className="bg-primary/5 border-primary/20">
                 <Title level={5} className="!text-sm sm:!text-base !mb-2 sm:!mb-3">Business Hours</Title>
                 <div className="space-y-1 text-xs sm:text-sm">
                   <div>Monday - Friday: 9:00 AM - 6:00 PM EST</div>
@@ -127,7 +127,7 @@ const Contact: React.FC = () => {
 
           {/* Contact Form */}
           <Col xs={24} lg={12}>
-            <Card className="shadow-lg">
+            <Card>
               <div className="mb-4 sm:mb-6">
                 <Title level={4} className="!text-base sm:!text-lg !mb-2">Send us a Message</Title>
                 <Text type="secondary" className="text-sm">
@@ -167,7 +167,7 @@ const Contact: React.FC = () => {
                     size="large"
                     loading={loading}
                     icon={<Send size={16} />}
-                    className="w-full bg-gradient-to-r from-primary to-purple-600 border-none hover:from-primary/90 hover:to-purple-600/90"
+                    className="w-full"
                   >
                     {loading ? "Sending..." : "Send Message"}
                   </Button>

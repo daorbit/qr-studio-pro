@@ -41,6 +41,9 @@ const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
 const CancellationsAndRefunds = lazy(() => import("./pages/CancellationsAndRefunds"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Workspaces = lazy(() => import("./pages/Workspaces"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
 const queryClient = new QueryClient();
 
@@ -61,15 +64,24 @@ const AppContent = () => {
     token: {
       colorPrimary: primaryColor,
       borderRadius: 8,
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      borderRadiusLG: 12,
+      fontFamily: "'Google Sans Flex', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+      boxShadow: 'none',
       ...(effectiveMode === 'dark' ? {
-        colorBgBase: '#0a0a0a',
-        colorBgContainer: '#141414',
-        colorBgElevated: '#1f1f1f',
-        colorBorder: '#2a2a2a',
-        colorText: '#e5e5e5',
-        colorTextSecondary: '#a3a3a3',
-      } : {}),
+        colorBgBase: '#0b0c0e',
+        colorBgContainer: '#16171a',
+        colorBgElevated: '#1c1d21',
+        colorBorder: '#28292e',
+        colorBorderSecondary: '#222327',
+        colorText: '#f2f2f4',
+        colorTextSecondary: '#8a8c95',
+      } : {
+        colorBgLayout: '#f5f5f7',
+        colorBorder: '#dcdce1',
+        colorBorderSecondary: '#e5e5ea',
+        colorText: '#1d1d1f',
+        colorTextSecondary: '#6e6e78',
+      }),
     },
   };
 
@@ -85,6 +97,15 @@ const AppContent = () => {
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/otp-verification" element={<OTPVerification />} />
+              <Route path="/invite/:token" element={<AcceptInvite />} />
+              <Route
+                path="/onboarding"
+                element={<ProtectedRoute requireWorkspace={false}><Onboarding /></ProtectedRoute>}
+              />
+              <Route
+                path="/workspaces"
+                element={<ProtectedRoute requireWorkspace={false}><Workspaces /></ProtectedRoute>}
+              />
               <Route
                 path="/dashboard"
                 element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
@@ -127,6 +148,14 @@ const AppContent = () => {
               />
               <Route
                 path="/settings/whitelabel"
+                element={<ProtectedRoute><Profile /></ProtectedRoute>}
+              />
+              <Route
+                path="/settings/workspace"
+                element={<ProtectedRoute><Profile /></ProtectedRoute>}
+              />
+              <Route
+                path="/settings/members"
                 element={<ProtectedRoute><Profile /></ProtectedRoute>}
               />
               <Route

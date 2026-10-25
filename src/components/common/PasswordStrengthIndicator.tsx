@@ -35,7 +35,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     <div className={`space-y-2 ${className}`}>
       {/* Strength Bar */}
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${strengthClasses.bar}`}
             style={{ width: `${passwordStrength.percent}%` }}
@@ -56,9 +56,9 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
                 {passed ? (
                   <Check className="w-3.5 h-3.5 text-green-500" />
                 ) : (
-                  <X className="w-3.5 h-3.5 text-gray-400" />
+                  <X className="w-3.5 h-3.5 text-muted-foreground" />
                 )}
-                <span className={passed ? "text-green-500" : "text-gray-400"}>
+                <span className={passed ? "text-green-500" : "text-muted-foreground"}>
                   {req.label}
                 </span>
               </li>

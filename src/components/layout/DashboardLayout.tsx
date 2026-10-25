@@ -18,8 +18,10 @@ import {
   Sun,
   Moon,
   CreditCard,
+  UserPlus,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -93,7 +95,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       {
         key: "/dashboard",
         icon: <QrCode size={18} />,
-        label: "My QR codes",
+        label: "QR codes",
       },
       {
         key: "/analytics",
@@ -104,6 +106,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         key: "/compare",
         icon: <GitCompare size={18} />,
         label: "Compare QR Codes",
+      },
+      {
+        key: "/settings/members",
+        icon: <UserPlus size={18} />,
+        label: "Members",
       },
       {
         key: "/pricing",
@@ -151,21 +158,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo & Brand */}
-      <div className="p-4 flex items-center gap-3 border-b border-border">
-        <img
-          src="/logo.png"
-          alt="QR Studio logo"
-          className="w-10 h-10 lg:w-12 lg:h-12 object-contain"
-        />
-        <div className="flex flex-col">
-          <Text strong className="text-base lg:text-lg leading-tight">
-            QR Studio
-          </Text>
-          <Text type="secondary" className="text-xs">
-            My QR codes
-          </Text>
-        </div>
+      <div className="p-3 border-b border-border">
+        <WorkspaceSwitcher onNavigate={() => setMobileMenuOpen(false)} />
       </div>
 
       {/* Menu */}

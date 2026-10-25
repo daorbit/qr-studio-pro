@@ -19,57 +19,36 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { usePayment } from "@/hooks/usePayment";
-import { authAPI } from "@/lib/api";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import type { WhiteLabelConfig } from "@/context/authTypes";
 import type { Color } from "antd/es/color-picker";
 
 const { Title, Text } = Typography;
 
-export interface WhiteLabelConfig {
-  enabled: boolean;
-  brandName?: string;
-  primaryColor?: string;
-  loadingText?: string;
-  showPoweredBy: boolean;
-}
-
 const WhiteLabelSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
-  const { subscription, hasFeatureAccess } = usePayment();
+  const { workspace, canManage, updateWorkspace } = useWorkspace();
+  const { hasFeatureAccess } = usePayment();
 
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState<WhiteLabelConfig>({
-    enabled: user?.whiteLabel?.enabled || false,
-    brandName: user?.whiteLabel?.brandName || "",
-    primaryColor: user?.whiteLabel?.primaryColor || "#6366f1",
-    loadingText: user?.whiteLabel?.loadingText || "",
-    showPoweredBy: user?.whiteLabel?.showPoweredBy ?? true,
+    enabled: workspace?.whiteLabel?.enabled || false,
+    brandName: workspace?.whiteLabel?.brandName || "",
+    primaryColor: workspace?.whiteLabel?.primaryColor || "#f97316",
+    loadingText: workspace?.whiteLabel?.loadingText || "",
+    showPoweredBy: workspace?.whiteLabel?.showPoweredBy ?? true,
   });
 
-  // Check if user has access to white label features
-  const canUseWhiteLabel = hasFeatureAccess("whiteLabel");
+  const canUseWhiteLabel = hasFeatureAccess("whiteLabel") && canManage;
 
   const handleSave = async () => {
     try {
       setLoading(true);
-
-      const formData = new FormData();
-      formData.append("name", user?.name || "");
-      formData.append("whiteLabel", JSON.stringify(config));
-
-      const response = await authAPI.updateProfile(formData);
-
-      if (response.success) {
-        updateUser({
-          ...response.user,
-          whiteLabel: config,
-        });
-        message.success("White-label settings saved successfully");
-      }
-    } catch (error: any) {
-      message.error(error.response?.data?.message || "Failed to save settings");
+      await updateWorkspace({ whiteLabel: config });
+      message.success("White-label settings saved for this workspace");
+    } catch (error) {
+      message.error(typeof error === "string" ? error : "Failed to save settings");
     } finally {
       setLoading(false);
     }

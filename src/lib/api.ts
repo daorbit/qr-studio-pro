@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { readStoredWorkspace, writeStoredWorkspace } from './storedWorkspace';
 
 // export const API_URL = 'http://localhost:3000/api';
 export const API_URL = 'https://be-qrstudio.daorbit.in/api';
@@ -39,6 +40,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    const workspaceId = readStoredWorkspace();
+    if (workspaceId) {
+      config.headers['X-Workspace-Id'] = workspaceId;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -56,12 +61,21 @@ api.interceptors.response.use(
     config._retryCount = config._retryCount || 0;
 
     // Retry logic for transient failures (not for auth endpoints)
-    const isAuthEndpoint = url.includes('/auth/signin') || url.includes('/auth/signup');
+    const isAuthEndpoint = url.includes('/auth/signin') || url.includes('/auth/signup') || url.includes('/auth/google');
     if (!isAuthEndpoint && isRetryable(error) && config._retryCount < RETRY_CONFIG.maxRetries) {
       config._retryCount += 1;
       console.log(`Retrying request (${config._retryCount}/${RETRY_CONFIG.maxRetries}): ${url}`);
       await delay(config._retryCount);
       return api.request(config);
+    }
+
+    const code = (error.response?.data as { code?: string } | undefined)?.code;
+    if (code === 'WORKSPACE_REQUIRED' || code === 'WORKSPACE_NOT_FOUND') {
+      writeStoredWorkspace(null);
+      if (typeof window !== 'undefined' && window.location.pathname !== '/workspaces') {
+        window.location.href = '/workspaces';
+      }
+      return Promise.reject(error);
     }
 
     // Only auto-logout/redirect for 401s on protected routes (when token exists)
@@ -72,6 +86,7 @@ api.interceptors.response.use(
       try {
         localStorage.removeItem('qc_auth');
         localStorage.removeItem('qc-token');
+        writeStoredWorkspace(null);
       } catch (e) {
         // ignore
         console.warn('Failed to clear local auth:', e);
@@ -97,7 +112,12 @@ export const authAPI = {
   },
 
   googleLoginUrl: () => `${API_URL}/auth/google`,
-  
+
+  googleCredential: async (credential: string): Promise<{ token: string; created: boolean }> => {
+    const response = await api.post('/auth/google/credential', { credential });
+    return response.data;
+  },
+
   getProfile: async () => {
     const response = await api.get('/auth/profile');
     return response.data;

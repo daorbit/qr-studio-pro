@@ -1,0 +1,11 @@
+import React from 'react';
+
+const AuthDivider: React.FC<{ label?: string }> = ({ label = 'or use your email' }) => (
+  <div className="my-6 flex items-center gap-3">
+    <span className="h-px flex-1 bg-border" />
+    <span className="text-xs text-muted-foreground">{label}</span>
+    <span className="h-px flex-1 bg-border" />
+  </div>
+);
+
+export default AuthDivider;

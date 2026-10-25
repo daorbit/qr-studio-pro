@@ -4,7 +4,7 @@ import { Input, ColorPicker, Slider, Popover } from 'antd';
 import { Pencil, Type } from 'lucide-react';
 import type { Color } from 'antd/es/color-picker';
 import { QRTemplate, QRStyling, CustomField, QRType } from '../../types/qrcode';
-import { useAuth } from '../../hooks/useAuth';
+import { useWorkspace } from '../../hooks/useWorkspace';
 import { createQRCodeOptions, createSafeStyling } from '../../lib/qrUtils';
 
 // All QR types should route through /r/{id} so scans are always tracked.
@@ -48,14 +48,14 @@ const QROnlyPreview = React.memo(forwardRef<HTMLDivElement, {
   watermarkText?: string;
 }>(
   ({ content, styling, compact = false, qrId, qrType = 'url', showWatermark, watermarkText }, ref) => {
-    const { user } = useAuth();
+    const { workspace } = useWorkspace();
     const qrRef = useRef<HTMLDivElement>(null);
     const qrCode = useRef<QRCodeStyling | null>(null);
     const qrOnlySize = compact ? 48 : Math.min(styling.size, 220); // Increased cap for better visibility
 
-    // Use user settings for watermark defaults
-    const effectiveShowWatermark = showWatermark !== undefined ? showWatermark : !user?.removeWatermark;
-    const effectiveWatermarkText = watermarkText !== undefined ? watermarkText : user?.watermarkText || 'QR Studio';
+    // Use workspace settings for watermark defaults
+    const effectiveShowWatermark = showWatermark !== undefined ? showWatermark : !workspace?.removeWatermark;
+    const effectiveWatermarkText = watermarkText !== undefined ? watermarkText : workspace?.watermarkText || 'QR Studio';
 
     const safeStyling = useMemo(() => createSafeStyling(styling), [styling]);
 
@@ -107,7 +107,7 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
   showWatermark,
   watermarkText,
 }, ref) => {
-  const { user } = useAuth();
+  const { workspace } = useWorkspace();
   const [hovered, setHovered] = useState(false);
   const [showTitleEditor, setShowTitleEditor] = useState(false);
   const [showSubtitleEditor, setShowSubtitleEditor] = useState(false);
@@ -115,9 +115,9 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
   const [showQRLabelEditor, setShowQRLabelEditor] = useState(false);
   const [showCTAEditor, setShowCTAEditor] = useState(false);
 
-  // Use user settings for watermark defaults
-  const effectiveShowWatermark = showWatermark !== undefined ? showWatermark : !user?.removeWatermark;
-  const effectiveWatermarkText = watermarkText !== undefined ? watermarkText : user?.watermarkText || 'QR Studio';
+  // Use workspace settings for watermark defaults
+  const effectiveShowWatermark = showWatermark !== undefined ? showWatermark : !workspace?.removeWatermark;
+  const effectiveWatermarkText = watermarkText !== undefined ? watermarkText : workspace?.watermarkText || 'QR Studio';
   const qrRef = useRef<HTMLDivElement>(null);
   const qrCode = useRef<QRCodeStyling | null>(null);
 
