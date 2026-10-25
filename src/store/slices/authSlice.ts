@@ -227,44 +227,17 @@ export const signUp = createAsyncThunk(
   }
 );
 
-// Google Sign In
+// Google Sign In: finishes the redirect flow with the token the backend put in the URL
 export const googleSignIn = createAsyncThunk(
   'auth/googleSignIn',
-  async ({ credential }: { credential: string }, { rejectWithValue }) => {
+  async ({ token }: { token: string }, { rejectWithValue }) => {
     try {
-      const data = await authAPI.googleAuth({ credential });
-      const { token } = data;
-
-      if (!token) {
-        return rejectWithValue('No token returned from Google authentication');
-      }
-
-      // Persist token immediately
       localStorage.setItem(TOKEN_KEY, token);
 
-      // Fetch canonical current user from /auth/me
-      let profile: any = null;
-      try {
-        const me = await authAPI.getCurrentUser();
-        profile = me._id ? me : me.user ? me.user : me;
-      } catch (err) {
-        // Fallback to data returned by google auth
-        profile = { 
-          _id: data._id, 
-          name: data.name, 
-          email: data.email, 
-          isAdmin: data.isAdmin, 
-          theme: data.theme,
-          mobile: data.mobile,
-          country: data.country,
-          city: data.city,
-          profilePicture: data.profilePicture,
-          language: data.language,
-          timezone: data.timezone,
-        };
-      }
+      const me = await authAPI.getCurrentUser();
+      const profile = me._id ? me : me.user ? me.user : me;
 
-      const user: User = { 
+      const user: User = {
         _id: profile._id, 
         name: profile.name, 
         email: profile.email, 
@@ -284,6 +257,7 @@ export const googleSignIn = createAsyncThunk(
 
       return { user, token };
     } catch (error: any) {
+      localStorage.removeItem(TOKEN_KEY);
       const serverMessage = error?.response?.data?.message || error?.message;
       return rejectWithValue(serverMessage || 'Google authentication failed');
     }
