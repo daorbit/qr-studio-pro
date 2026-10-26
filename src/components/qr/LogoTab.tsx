@@ -16,11 +16,10 @@ import {
   FaPaypal,
   FaGithub
 } from 'react-icons/fa';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { ActionIcon, Slider } from '@mantine/core';
 import { QRStyling } from '../../types/qrcode';
 import { cn } from '@/lib/utils';
+import FieldGroup from '@/components/create/FieldGroup';
 import { generateBrandSvgDataUrl } from './IconSvgs';
 
 interface LogoTabProps {
@@ -194,23 +193,19 @@ const LogoTab: React.FC<LogoTabProps> = ({ styling, onStyleChange }) => {
     return preset.color || '#000';
   };
 
+  const logoSize = Math.round((styling.imageOptions?.imageSize || 0.2) * 100);
+
   return (
-    <div className="pt-4 space-y-6">
-      <div>
-        <Label className="text-sm font-medium mb-3 block">Logo</Label>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-          {/* Upload Button */}
+    <div className="space-y-8">
+      <FieldGroup label="Logo">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
           <button
+            type="button"
             onClick={handleUploadClick}
-            className={cn(
-              "aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all hover:border-primary hover:bg-primary/5",
-              styling.image && !BRAND_LOGOS.some(p => p.type !== 'none' && isPresetSelected(p))
-                ? "border-primary bg-primary/10"
-                : "border-border"
-            )}
+            className="create-tile flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border-dashed"
           >
             <Upload className="h-5 w-5 text-primary" />
-            <span className="text-[10px] text-primary font-medium">Upload</span>
+            <span className="text-[11px] font-medium text-primary">Upload</span>
           </button>
           <input
             ref={fileInputRef}
@@ -220,21 +215,18 @@ const LogoTab: React.FC<LogoTabProps> = ({ styling, onStyleChange }) => {
             className="hidden"
           />
 
-          {/* Preset Options */}
           {BRAND_LOGOS.map((preset) => {
             const BrandIcon = preset.type === 'brand' ? getBrandIcon(preset.id) : null;
-            
+
             return (
               <button
                 key={preset.id}
+                type="button"
                 onClick={() => handlePresetSelect(preset)}
-                className={cn(
-                  "aspect-square rounded-lg border-2 flex items-center justify-center transition-all hover:border-primary",
-                  isPresetSelected(preset)
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-muted/30"
-                )}
+                data-selected={isPresetSelected(preset)}
+                className="create-tile flex aspect-square items-center justify-center rounded-2xl"
                 title={preset.label}
+                aria-label={preset.label}
               >
                 {preset.type === 'none' && (
                   <X className="h-6 w-6 text-muted-foreground" />
@@ -263,58 +255,44 @@ const LogoTab: React.FC<LogoTabProps> = ({ styling, onStyleChange }) => {
             );
           })}
         </div>
-      </div>
+      </FieldGroup>
 
-      {/* Logo Preview */}
       {styling.image && (
-        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-          <img 
-            src={styling.image} 
-            alt="Logo preview" 
-            className="h-12 w-12 object-contain rounded border bg-white"
-          />
+        <div className="flex items-center gap-3 rounded-2xl bg-foreground/[0.04] p-3">
+          <img src={styling.image} alt="Logo preview" className="h-12 w-12 rounded-xl border border-border bg-white object-contain" />
           <div className="flex-1">
-            <p className="text-sm font-medium">Logo selected</p>
-            <p className="text-xs text-muted-foreground">Adjust size below</p>
+            <p className="text-sm font-semibold text-foreground">Logo added</p>
+            <p className="text-xs text-muted-foreground">Adjust its size below</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onStyleChange({ ...styling, image: undefined })}
-          >
+          <ActionIcon onClick={() => onStyleChange({ ...styling, image: undefined })} aria-label="Remove logo">
             <X className="h-4 w-4" />
-          </Button>
+          </ActionIcon>
         </div>
       )}
 
-      {/* Logo Size Slider */}
-      <div>
-        <Label className="text-sm text-muted-foreground mb-3 block">
-          Logo size: {Math.round((styling.imageOptions?.imageSize || 0.2) * 100)}%
-        </Label>
+      <FieldGroup
+        label="Logo size"
+        value={`${logoSize}%`}
+        description="Keep the logo at 25% or less so the code stays easy to scan. Error correction is set to the highest level when a logo is added."
+      >
         <Slider
           min={10}
           max={25}
           step={1}
-          value={[Math.round((styling.imageOptions?.imageSize || 0.2) * 100)]}
-          onValueChange={([value]) =>
+          value={logoSize}
+          label={(value) => `${value}%`}
+          onChange={(value) =>
             onStyleChange({
               ...styling,
-              imageOptions: { 
+              imageOptions: {
                 hideBackgroundDots: true,
                 imageSize: value / 100,
                 margin: 0,
               },
             })
           }
-          className="w-full"
         />
-      </div>
-
-      {/* Info text */}
-      <p className="text-xs text-muted-foreground">
-        Keep logo size at 25% or less for best scannability. Error correction is automatically set to highest level when logo is added.
-      </p>
+      </FieldGroup>
     </div>
   );
 };

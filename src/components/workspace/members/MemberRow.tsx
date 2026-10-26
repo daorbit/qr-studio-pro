@@ -1,8 +1,11 @@
 import React from 'react';
-import { Avatar, Button, Popconfirm, Select } from 'antd';
-import { Trash2 } from 'lucide-react';
+import { ActionIcon, Avatar, Menu, Select } from '@mantine/core';
+import { MoreHorizontal, UserMinus } from 'lucide-react';
 import type { WorkspaceMember, WorkspaceRole } from '@/types/workspace';
+import { useDateFormatter } from '@/hooks/useDateFormatter';
+import { confirmAction } from '@/lib/notify';
 import { ROLE_LABELS, assignableRoles, canManageMember } from './roles';
+import { MEMBER_GRID } from './memberGrid';
 
 interface MemberRowProps {
   member: WorkspaceMember;
@@ -13,43 +16,69 @@ interface MemberRowProps {
 }
 
 const MemberRow: React.FC<MemberRowProps> = ({ member, actorRole, isSelf, onRoleChange, onRemove }) => {
+  const formatter = useDateFormatter();
   const manageable = !isSelf && canManageMember(actorRole, member.role);
 
   return (
-    <div className="flex items-center gap-3 py-3">
-      <Avatar size={36} src={member.profilePicture}>
-        {member.name.charAt(0).toUpperCase()}
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground truncate">
-          {member.name}
-          {isSelf && <span className="ml-2 text-xs text-muted-foreground">You</span>}
+    <div className={MEMBER_GRID}>
+      <div className="flex min-w-0 items-center gap-3">
+        <Avatar src={member.profilePicture} name={member.name} color="initials" radius="xl" size={34} />
+        <div className="min-w-0">
+          <div className="truncate text-[13px] font-medium text-foreground">
+            {member.name}
+            {isSelf && <span className="ml-1.5 font-normal text-muted-foreground">(you)</span>}
+          </div>
+          <div className="truncate text-xs text-muted-foreground">{member.email}</div>
         </div>
-        <div className="text-xs text-muted-foreground truncate">{member.email}</div>
       </div>
-      {manageable ? (
-        <Select
-          value={member.role}
-          onChange={(role) => onRoleChange(member._id, role)}
-          className="w-28"
-          options={assignableRoles(actorRole).map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
-        />
-      ) : (
-        <span className="w-28 text-sm text-muted-foreground text-right pr-3">{ROLE_LABELS[member.role]}</span>
-      )}
-      {manageable ? (
-        <Popconfirm
-          title={`Remove ${member.name}?`}
-          description="They lose access to this workspace right away."
-          okText="Remove"
-          okButtonProps={{ danger: true }}
-          onConfirm={() => onRemove(member._id)}
-        >
-          <Button type="text" icon={<Trash2 size={16} />} aria-label={`Remove ${member.name}`} />
-        </Popconfirm>
-      ) : (
-        <span className="w-8" />
-      )}
+
+      <div>
+        {manageable ? (
+          <Select
+            size="xs"
+            variant="unstyled"
+            value={member.role}
+            onChange={(role) => role && onRoleChange(member._id, role as WorkspaceRole)}
+            data={assignableRoles(actorRole).map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+            allowDeselect={false}
+            aria-label={`Role for ${member.name}`}
+            classNames={{ input: 'rounded-md pl-2.5 hover:bg-foreground/[0.05]' }}
+          />
+        ) : (
+          <span className="pl-2.5 text-[12.5px] text-muted-foreground">{ROLE_LABELS[member.role]}</span>
+        )}
+      </div>
+
+      <span className="hidden text-xs tabular-nums text-muted-foreground md:block">{formatter.format(member.joinedAt, { dateStyle: 'medium' })}</span>
+
+      <div className="flex justify-end">
+        {manageable && (
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <ActionIcon aria-label={`Actions for ${member.name}`}>
+                <MoreHorizontal size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                color="red"
+                leftSection={<UserMinus size={14} />}
+                onClick={() =>
+                  confirmAction({
+                    title: `Remove ${member.name}?`,
+                    body: 'They lose access to this workspace right away.',
+                    confirmLabel: 'Remove',
+                    danger: true,
+                    onConfirm: () => onRemove(member._id),
+                  })
+                }
+              >
+                Remove from workspace
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        )}
+      </div>
     </div>
   );
 };

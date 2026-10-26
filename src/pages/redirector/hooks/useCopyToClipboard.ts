@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 
 export const useCopyToClipboard = () => {
   const [copied, setCopied] = useState<string | null>(null);

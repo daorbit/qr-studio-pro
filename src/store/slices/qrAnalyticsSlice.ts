@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { qrCodeAPI } from '@/lib/api';
 import type { ScanData } from '@/types/qrcode';
 

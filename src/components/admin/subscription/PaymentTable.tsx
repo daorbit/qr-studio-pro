@@ -1,10 +1,12 @@
 import React from 'react';
-import { Table, Tag, Avatar, Space, Card, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Badge, Loader, Pagination } from '@mantine/core';
 import { useDateFormatter } from '@/hooks/useDateFormatter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { AdminPayment } from '@/store/slices/adminSlice';
 import { formatCurrencyIntl } from '@/utils/currencyFormatter';
+import DataTable, { type DataColumn } from '@/components/common/DataTable';
+import AdminUserCell from '../AdminUserCell';
+import { planColor, statusColor } from '../adminColors';
 
 interface PaymentTableProps {
   payments: AdminPayment[];
@@ -26,191 +28,113 @@ const PaymentTable: React.FC<PaymentTableProps> = ({
   const formatter = useDateFormatter();
   const isMobile = useIsMobile();
 
-  const getPlanColor = (planType: string) => {
-    const colors: Record<string, string> = {
-      free: 'default',
-      basic: 'blue',
-      pro: 'purple',
-      enterprise: 'gold',
-      trial: 'orange',
-    };
-    return colors[planType] || 'default';
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      active: 'success',
-      paid: 'success',
-      inactive: 'default',
-      expired: 'warning',
-      cancelled: 'error',
-      failed: 'error',
-      created: 'processing',
-      refunded: 'warning',
-    };
-    return colors[status] || 'default';
-  };
-
-  // Mobile Card View
-  const MobilePaymentCard = ({ payment }: { payment: AdminPayment }) => (
-    <Card className="mb-2" bodyStyle={{ padding: 12 }}>
-      <div className="flex items-start gap-3">
-        <Avatar src={payment.userId?.profilePicture} size={36}>
-          {payment.userId?.name?.charAt(0).toUpperCase() || '?'}
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{payment.userId?.name || 'Unknown'}</div>
-          <div className="text-xs text-muted-foreground truncate">{payment.userId?.email}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm font-semibold">{formatCurrencyIntl(payment.amount, payment.currency)}</div>
-          <Tag color={getStatusColor(payment.status)} className="text-xs capitalize mt-1">
-            {payment.status}
-          </Tag>
-        </div>
-      </div>
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
-        <div className="flex items-center gap-2">
-          <Tag color={getPlanColor(payment.planType)} className="text-xs capitalize">
-            {payment.planType}
-          </Tag>
-          <span className="text-xs text-muted-foreground">{payment.planDuration}mo</span>
-        </div>
-        <span className="text-xs text-muted-foreground">
-          {formatter.format(payment.createdAt, { dateStyle: 'medium' })}
-        </span>
-      </div>
-    </Card>
-  );
-
   if (isMobile) {
     return (
-      <div>
+      <div className="space-y-2">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
+          <div className="flex justify-center py-8">
+            <Loader size="sm" />
+          </div>
+        ) : payments.length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">No payments found</div>
         ) : (
-          <>
-            {payments.map((payment) => (
-              <MobilePaymentCard key={payment._id} payment={payment} />
-            ))}
-            <div className="flex justify-center gap-2 mt-4">
-              <Button
-                disabled={page <= 1}
-                onClick={() => onTableChange(page - 1, limit)}
-                size="small"
-              >
-                Prev
-              </Button>
-              <span className="px-3 py-1 text-sm">
-                {page} / {Math.ceil(total / limit) || 1}
-              </span>
-              <Button
-                disabled={page >= Math.ceil(total / limit)}
-                onClick={() => onTableChange(page + 1, limit)}
-                size="small"
-              >
-                Next
-              </Button>
+          payments.map((payment) => (
+            <div key={payment._id} className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <AdminUserCell user={payment.userId} />
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold">{formatCurrencyIntl(payment.amount, payment.currency)}</div>
+                  <Badge color={statusColor(payment.status)} tt="capitalize" className="mt-1">
+                    {payment.status}
+                  </Badge>
+                </div>
+              </div>
+              <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
+                <div className="flex items-center gap-2">
+                  <Badge color={planColor(payment.planType)} tt="capitalize">{payment.planType}</Badge>
+                  <span className="text-xs text-muted-foreground">{payment.planDuration}mo</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {formatter.format(payment.createdAt, { dateStyle: 'medium' })}
+                </span>
+              </div>
             </div>
-          </>
+          ))
+        )}
+        {total > limit && (
+          <div className="flex justify-center pt-2">
+            <Pagination size="sm" total={Math.ceil(total / limit)} value={page} onChange={(p) => onTableChange(p, limit)} />
+          </div>
         )}
       </div>
     );
   }
 
-  const columns: ColumnsType<AdminPayment> = [
+  const columns: DataColumn<AdminPayment>[] = [
     {
-      title: 'User',
-      dataIndex: 'userId',
       key: 'user',
-      render: (user: AdminPayment['userId']) => (
-        <Space>
-          <Avatar src={user?.profilePicture} size="small">
-            {user?.name?.charAt(0).toUpperCase() || '?'}
-          </Avatar>
-          <div>
-            <div className="font-medium text-sm">{user?.name || 'Unknown'}</div>
-            <div className="text-xs text-gray-500">{user?.email}</div>
-          </div>
-        </Space>
-      ),
+      title: 'User',
+      render: (_, record) => <AdminUserCell user={record.userId} />,
     },
     {
+      key: 'orderId',
       title: 'Order ID',
       dataIndex: 'orderId',
-      key: 'orderId',
-      render: (orderId: string) => (
-        <span className="font-mono text-xs">{orderId}</span>
-      ),
+      render: (orderId) => <span className="font-mono text-xs">{orderId as string}</span>,
     },
     {
+      key: 'amount',
       title: 'Amount',
       dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number, record: AdminPayment) =>
-        formatCurrencyIntl(amount, record.currency),
+      render: (amount, record) => formatCurrencyIntl(amount as number, record.currency),
     },
     {
+      key: 'planType',
       title: 'Plan',
       dataIndex: 'planType',
-      key: 'planType',
-      render: (planType: string, record: AdminPayment) => (
+      render: (planType, record) => (
         <div>
-          <Tag color={getPlanColor(planType)} className="capitalize">
-            {planType}
-          </Tag>
-          <div className="text-xs text-gray-500">{record.planDuration} months</div>
+          <Badge color={planColor(planType as string)} tt="capitalize">{planType as string}</Badge>
+          <div className="mt-1 text-xs text-muted-foreground">{record.planDuration} months</div>
         </div>
       ),
     },
     {
+      key: 'status',
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={getStatusColor(status)} className="capitalize">
-          {status}
-        </Tag>
-      ),
+      render: (status) => <Badge color={statusColor(status as string)} tt="capitalize">{status as string}</Badge>,
     },
     {
+      key: 'paymentId',
       title: 'Payment ID',
       dataIndex: 'paymentId',
-      key: 'paymentId',
-      render: (paymentId: string) =>
+      render: (paymentId) =>
         paymentId ? (
-          <span className="font-mono text-xs">{paymentId}</span>
+          <span className="font-mono text-xs">{paymentId as string}</span>
         ) : (
-          <span className="text-gray-400">Pending</span>
+          <span className="text-muted-foreground">Pending</span>
         ),
     },
     {
+      key: 'createdAt',
       title: 'Created',
       dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => formatter.format(date, { dateStyle: 'medium' }),
+      render: (date) => formatter.format(date as string, { dateStyle: 'medium' }),
     },
   ];
 
   return (
-    <Table<AdminPayment>
+    <DataTable<AdminPayment>
       rowKey="_id"
-      dataSource={payments}
+      data={payments}
       columns={columns}
       loading={loading}
-      pagination={{
-        current: page,
-        pageSize: limit,
-        total: total,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} payments`,
-      }}
-      onChange={(pagination) =>
-        onTableChange(pagination.current || 1, pagination.pageSize || limit)
-      }
-      scroll={{ x: 1000 }}
+      minWidth={1000}
+      emptyText="No payments found"
+      pagination={{ current: page, pageSize: limit, total, onChange: onTableChange }}
     />
   );
 };

@@ -1,104 +1,48 @@
-import React, { memo, useEffect, useState } from "react";
-import { Typography, Tabs } from "antd";
+import React, { memo } from "react";
+import { Tabs, Title } from "@mantine/core";
 import { Users, CreditCard, RefreshCw, DollarSign } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
 import AdminUsersTab from "./AdminUsersTab";
 import AdminSubscriptions from "./AdminSubscriptions";
 import AdminAuditLogsTab from "./AdminAuditLogsTab";
 import AdminPlanPricingTab from "./AdminPlanPricingTab";
 
-const { Title } = Typography;
+const ADMIN_TABS = [
+  { value: 'users', path: '/admin/users', label: 'Users & QR Codes', icon: Users, Panel: AdminUsersTab },
+  { value: 'subscriptions', path: '/admin/subscriptions', label: 'Subscriptions & Payments', icon: CreditCard, Panel: AdminSubscriptions },
+  { value: 'audit-logs', path: '/admin/audit-logs', label: 'Audit Logs', icon: RefreshCw, Panel: AdminAuditLogsTab },
+  { value: 'plan-pricing', path: '/admin/plan-pricing', label: 'Plan Pricing', icon: DollarSign, Panel: AdminPlanPricingTab },
+];
 
-// ----- Component -----
 const AdminData: React.FC = memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const [activeKey, setActiveKey] = useState('1');
+  const activeTab = ADMIN_TABS.find((tab) => tab.path === location.pathname)?.value ?? ADMIN_TABS[0].value;
 
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === '/admin/users') {
-      setActiveKey('1');
-    } else if (path === '/admin/subscriptions') {
-      setActiveKey('2');
-    } else if (path === '/admin/audit-logs') {
-      setActiveKey('3');
-    } else if (path === '/admin/plan-pricing') {
-      setActiveKey('4');
-    }
-  }, [location.pathname]);
-
-  const handleTabChange = (key: string) => {
-    setActiveKey(key);
-    if (key === '1') {
-      navigate('/admin/users');
-    } else if (key === '2') {
-      navigate('/admin/subscriptions');
-    } else if (key === '3') {
-      navigate('/admin/audit-logs');
-    } else if (key === '4') {
-      navigate('/admin/plan-pricing');
-    }
+  const handleTabChange = (value: string | null) => {
+    const tab = ADMIN_TABS.find((t) => t.value === value);
+    if (tab) navigate(tab.path);
   };
-  const tabItems = [
-    {
-      key: '1',
-      label: (
-        <span className="flex items-center gap-2">
-          <Users size={16} />
-          Users & QR Codes
-        </span>
-      ),
-      children: <AdminUsersTab />,
-    },
-    {
-      key: '2',
-      label: (
-        <span className="flex items-center gap-2">
-          <CreditCard size={16} />
-          Subscriptions & Payments
-        </span>
-      ),
-      children: <AdminSubscriptions />,
-    },
-    {
-      key: '3',
-      label: (
-        <span className="flex items-center gap-2">
-          <RefreshCw size={16} />
-          Audit Logs
-        </span>
-      ),
-      children: <AdminAuditLogsTab />,
-    },
-    {
-      key: '4',
-      label: (
-        <span className="flex items-center gap-2">
-          <DollarSign size={16} />
-          Plan Pricing
-        </span>
-      ),
-      children: <AdminPlanPricingTab />,
-    },
-  ];
 
   return (
     <div>
-      <div className="mb-6">
-        <Title level={3}>Admin Dashboard</Title>
-      </div>
+      <Title order={2} className="mb-6">Admin Dashboard</Title>
 
-      <Tabs
-        activeKey={activeKey}
-        onChange={handleTabChange}
-        items={tabItems}
-        size={isMobile ? 'small' : 'large'}
-        tabBarGutter={isMobile ? 8 : 24}
-        className="admin-tabs"
-      />
+      <Tabs value={activeTab} onChange={handleTabChange} keepMounted={false}>
+        <Tabs.List className="mb-5 flex-nowrap overflow-x-auto">
+          {ADMIN_TABS.map(({ value, label, icon: Icon }) => (
+            <Tabs.Tab key={value} value={value} leftSection={<Icon size={16} />} className="shrink-0">
+              {label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+
+        {ADMIN_TABS.map(({ value, Panel }) => (
+          <Tabs.Panel key={value} value={value}>
+            <Panel />
+          </Tabs.Panel>
+        ))}
+      </Tabs>
     </div>
   );
 });

@@ -1,15 +1,27 @@
 import React, { useCallback, memo, useState } from "react";
-import { Table, Tag, Typography, Alert, Button, Input, Space, Modal, message, Tooltip } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { RefreshCw, Eye, Copy } from "lucide-react";
+import { ActionIcon, Alert, Badge, Button, Code, Group, Modal, Text, TextInput, Title, Tooltip } from "@mantine/core";
+import { useClipboard } from "@mantine/hooks";
+import { RefreshCw, Eye, Copy, AlertCircle } from "lucide-react";
+import { message } from "@/lib/notify";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
 import type { AuditLog } from "@/store/slices/adminSlice";
+import DataTable, { type DataColumn } from "@/components/common/DataTable";
 
-const { Title, Text, Paragraph } = Typography;
+const ACTION_COLORS: Record<AuditLog['action'], string> = {
+  USER_BLOCKED: "red",
+  USER_UNBLOCKED: "green",
+  USER_DELETED: "red",
+  SUBSCRIPTION_UPDATED: "blue",
+  USER_SUBSCRIPTION_REFRESHED: "orange",
+  SYSTEM_CLEANUP: "grape",
+  LIMITS_ENFORCED: "indigo",
+  UPDATE_PLAN_PRICES: "cyan",
+};
 
 const AdminAuditLogsTab: React.FC = memo(() => {
   const formatter = useDateFormatter();
+  const clipboard = useClipboard();
   const {
     logs: auditLogs,
     loading: auditLogsLoading,
@@ -22,212 +34,137 @@ const AdminAuditLogsTab: React.FC = memo(() => {
     handleSearch: handleAuditLogsSearch,
   } = useAuditLogs();
 
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const handleCopyJson = useCallback(async () => {
-    if (selectedLog) {
-      try {
-        await navigator.clipboard.writeText(JSON.stringify(selectedLog, null, 2));
-        message.success('JSON copied to clipboard!');
-      } catch (err) {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = JSON.stringify(selectedLog, null, 2);
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        message.success('JSON copied to clipboard!');
-      }
-    }
-  }, [selectedLog]);
+  const handleCopyJson = useCallback(() => {
+    if (!selectedLog) return;
+    clipboard.copy(JSON.stringify(selectedLog, null, 2));
+    message.success('JSON copied to clipboard!');
+  }, [clipboard, selectedLog]);
 
-  // Audit logs columns
-  const auditLogsColumns: ColumnsType<AuditLog> = [
+  const auditLogsColumns: DataColumn<AuditLog>[] = [
     {
-      title: "Admin",
-      dataIndex: ["adminId", "name"],
       key: "admin",
-      render: (name: string | undefined, record: AuditLog) => (
-        <Text strong>{name || record.adminEmail}</Text>
+      title: "Admin",
+      render: (_, record) => (
+        <Text size="sm" fw={600}>{record.adminId?.name || record.adminEmail}</Text>
       ),
     },
     {
+      key: "action",
       title: "Action",
       dataIndex: "action",
-      key: "action",
-      render: (action: string) => {
-        const actionColors = {
-          USER_BLOCKED: "red",
-          USER_UNBLOCKED: "green",
-          USER_DELETED: "red",
-          SUBSCRIPTION_UPDATED: "blue",
-          USER_SUBSCRIPTION_REFRESHED: "orange",
-          SYSTEM_CLEANUP: "purple",
-          LIMITS_ENFORCED: "geekblue",
-          UPDATE_PLAN_PRICES: "cyan",
-        };
-        return (
-          <Tag
-            color={
-              actionColors[action as keyof typeof actionColors] || "default"
-            }
-          >
-            {action.replace(/_/g, " ")}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: "Target User",
-      dataIndex: ["targetUserId", "name"],
-      key: "targetUser",
-      render: (name: string | undefined, record: AuditLog) => (
-        <Text>{name || record.targetUserEmail || "—"}</Text>
+      render: (action) => (
+        <Badge color={ACTION_COLORS[action as AuditLog['action']] ?? "gray"}>
+          {String(action).replace(/_/g, " ")}
+        </Badge>
       ),
     },
     {
+      key: "targetUser",
+      title: "Target User",
+      render: (_, record) => (
+        <Text size="sm">{record.targetUserId?.name || record.targetUserEmail || "—"}</Text>
+      ),
+    },
+    {
+      key: "details",
       title: "Details",
       dataIndex: "details",
-      key: "details",
-      render: (details: any) => {
+      render: (details) => {
         if (!details) return "—";
-        // compact single-line preview for the table cell
-        const compactStr =
-          typeof details === "object" ? JSON.stringify(details) : String(details);
-        // pretty JSON for tooltip/preview/modal
-        const prettyStr =
-          typeof details === "object" ? JSON.stringify(details, null, 2) : String(details);
+        const compactStr = typeof details === "object" ? JSON.stringify(details) : String(details);
+        const prettyStr = typeof details === "object" ? JSON.stringify(details, null, 2) : String(details);
         return (
-          <div style={{ maxWidth: 420 }}>
-            <Paragraph
-              type="secondary"
-              ellipsis={{ rows: 1, tooltip: prettyStr }}
-              style={{ margin: 0 }}
-            >
+          <Tooltip label={<pre className="m-0 whitespace-pre-wrap font-mono text-xs">{prettyStr}</pre>} multiline maw={420}>
+            <Text size="sm" c="dimmed" truncate="end" maw={420}>
               {compactStr}
-            </Paragraph>
-          </div>
+            </Text>
+          </Tooltip>
         );
       },
     },
     {
+      key: "createdAt",
       title: "Date",
       dataIndex: "createdAt",
-      key: "createdAt",
-      render: (val: string | null | undefined) => (
-        <Text type="secondary">{formatter.dateTime(val as any)}</Text>
+      render: (val) => (
+        <Text size="sm" c="dimmed">{formatter.dateTime(val as string)}</Text>
       ),
     },
     {
-      title: "Actions",
       key: "actions",
+      title: "Actions",
       width: 80,
-      render: (_: any, record: AuditLog) => (
-        <Button
-          type="text"
-          icon={<Eye size={14} />}
-          onClick={() => {
-            setSelectedLog(record);
-            setDetailModalVisible(true);
-          }}
-          size="small"
-          title="View Details"
-        />
+      render: (_, record) => (
+        <ActionIcon onClick={() => setSelectedLog(record)} aria-label="View details">
+          <Eye size={14} />
+        </ActionIcon>
       ),
     },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Title level={4}>Audit Logs</Title>
-        <Space>
-          <Input
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Title order={3}>Audit Logs</Title>
+        <Group gap="sm">
+          <TextInput
             placeholder="Search logs..."
             value={auditLogsSearch}
-            onChange={(e) => handleAuditLogsSearch(e.target.value)}
-            style={{ width: 200 }}
-            allowClear
+            onChange={(e) => handleAuditLogsSearch(e.currentTarget.value)}
+            w={200}
+            aria-label="Search logs"
           />
           <Button
-            icon={<RefreshCw size={14} />}
+            variant="default"
+            leftSection={<RefreshCw size={14} />}
             onClick={() => handleAuditLogsSearch(auditLogsSearch)}
             loading={auditLogsLoading}
           >
             Refresh
           </Button>
-        </Space>
+        </Group>
       </div>
 
       {auditLogsError && (
-        <Alert message={auditLogsError} type="error" showIcon />
+        <Alert color="red" icon={<AlertCircle size={16} />}>{auditLogsError}</Alert>
       )}
 
-      <Table
+      <DataTable<AuditLog>
         columns={auditLogsColumns}
-        dataSource={auditLogs}
+        data={auditLogs}
         rowKey="_id"
         loading={auditLogsLoading}
+        minWidth={900}
+        emptyText="No audit logs found"
         pagination={{
           current: auditLogsPage,
           pageSize: auditLogsLimit,
           total: auditLogsTotal,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} logs`,
+          onChange: handleAuditLogsTableChange,
         }}
-        onChange={handleAuditLogsTableChange}
-        size="large"
-        scroll={{ x: 'max-content' }}
       />
 
       <Modal
-      destroyOnHidden
+        opened={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        size={800}
         title={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 48,marginTop: -4,marginBottom: 4 }}>
+          <Group gap="xs">
             <span>Audit Log Details</span>
-            <div>
-              <Tooltip title="Copy JSON">
-                <Button
-                  type="text"
-                  icon={<Copy size={14} />}
-                  onClick={handleCopyJson}
-                  size="small"
-                  aria-label="Copy JSON"
-                />
-              </Tooltip>
-            </div>
-          </div>
+            <Tooltip label="Copy JSON">
+              <ActionIcon size="sm" onClick={handleCopyJson} aria-label="Copy JSON">
+                <Copy size={14} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         }
-        open={detailModalVisible}
-        onCancel={() => setDetailModalVisible(false)}
-        footer={null}
-        width={800}
-        centered
       >
         {selectedLog && (
-          <div>
-            <pre
-              style={{
-                padding: '16px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                overflow: 'auto',
-                maxHeight: '500px',
-                margin: 0,
-                userSelect: 'text',
-                cursor: 'text',
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-              }}
-            >
-              {JSON.stringify(selectedLog, null, 2)}
-            </pre>
-          </div>
+          <Code block className="max-h-[500px] select-text overflow-auto whitespace-pre-wrap break-words">
+            {JSON.stringify(selectedLog, null, 2)}
+          </Code>
         )}
       </Modal>
     </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, message, Input } from 'antd';
+import { Button, PasswordInput } from '@mantine/core';
+import { message } from '@/lib/notify';
 import { ArrowLeft, Clock, Mail, KeyRound } from 'lucide-react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '@/lib/api';
@@ -123,29 +124,23 @@ const OTPVerification: React.FC = () => {
         {isReset && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="otp-new-password" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-                New password
-              </label>
-              <Input.Password
-                id="otp-new-password"
+              <PasswordInput
+                label="New password"
                 autoComplete="new-password"
                 placeholder="At least 8 characters"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => setNewPassword(e.currentTarget.value)}
                 disabled={loading}
               />
               <PasswordStrengthIndicator password={newPassword} className="mt-2.5" />
             </div>
             <div>
-              <label htmlFor="otp-confirm-password" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-                Confirm password
-              </label>
-              <Input.Password
-                id="otp-confirm-password"
+              <PasswordInput
+                label="Confirm password"
                 autoComplete="new-password"
                 placeholder="Repeat the new password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.currentTarget.value)}
                 disabled={loading}
               />
               <PasswordStrengthIndicator
@@ -159,7 +154,7 @@ const OTPVerification: React.FC = () => {
           </div>
         )}
 
-        <Button type="primary" block loading={loading} disabled={!canSubmit} onClick={handleVerify}>
+        <Button fullWidth loading={loading} disabled={!canSubmit} onClick={handleVerify}>
           {isReset ? 'Reset password' : 'Verify and continue'}
         </Button>
 
@@ -168,7 +163,7 @@ const OTPVerification: React.FC = () => {
             <Clock size={14} />
             {timeLeft > 0 ? `Expires in ${formatTime(timeLeft)}` : 'Code expired'}
           </span>
-          <Button type="link" size="small" onClick={handleResend} loading={resendLoading} disabled={timeLeft > CODE_TTL_SECONDS - 30} className="!h-auto !p-0 font-semibold">
+          <Button variant="transparent" size="compact-sm" onClick={handleResend} loading={resendLoading} disabled={timeLeft > CODE_TTL_SECONDS - 30} px={0}>
             Resend code
           </Button>
         </div>

@@ -1,284 +1,113 @@
 import React from 'react';
-import { Card, Button, Typography, List } from 'antd';
-import { Check, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import type { Plan } from '@/types/payment';
-
-const { Title, Text } = Typography;
+import { Button } from '@mantine/core';
+import { ArrowUpRight, Check, CreditCard, Mail, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/currencyFormatter';
+import { SUPPORT_MAILTO } from '@/lib/config';
+import { featureLines, type CatalogPlan, type Cycle, type PlanAction } from './billing/planCatalog';
 
 interface PlanCardProps {
-  planType: string;
-  plan?: Plan;
-  selectedDuration: 1 | 12;
-  isCurrentPlan: boolean;
-  isPopular?: boolean;
-  processingPlan: string | null;
-  onSelectPlan: (planType: string) => void;
-  canUpgrade: boolean;
-  subscription?: {
-    planType: string;
-  };
+  plan: CatalogPlan;
+  cycle: Cycle;
+  action: PlanAction;
+  featured: boolean;
+  onTrial: boolean;
+  loading: boolean;
+  onSelect: (plan: CatalogPlan) => void;
 }
 
-const PlanCard: React.FC<PlanCardProps> = ({
-  planType,
-  plan,
-  selectedDuration,
-  isCurrentPlan,
-  isPopular = false,
-  processingPlan,
-  onSelectPlan,
-  canUpgrade,
-  subscription
-}) => {
-  const navigate = useNavigate();
+const CTA: Record<PlanAction, string> = {
+  current: 'Current plan',
+  upgrade: 'Upgrade',
+  switch: 'Switch plan',
+  included: 'Included',
+  downgrade: 'Not available as a downgrade',
+  contact: 'Talk to us',
+  free: 'Free forever',
+};
 
-  const handleContactSupport = () => {
-    navigate('/contact');
-  };
-  const getPrice = (plan: Plan, duration: number) => {
-    if (duration === 12) {
-      return plan.yearlyPrice;
-    } else {
-      return plan.monthlyPrice;
-    }
-  };
-
-  const formatFeatureValue = (value: any) => {
-    if (value === -1) return 'Unlimited';
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'number') return value.toLocaleString();
-    return value;
-  };
-
-  const FeatureItem = ({ text, included = true }: { text: string; included?: boolean }) => (
-    <div className="flex items-center gap-3 py-2">
-      {included ? (
-        <Check className="w-4 h-4 text-green-600 dark:text-green-500 flex-shrink-0" />
-      ) : (
-        <X className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
-      )}
-      <span className={included ? "text-gray-700 dark:text-gray-300" : "text-gray-400 dark:text-gray-500"}>
-        {text}
-      </span>
-    </div>
-  );
-
-  // Free Plan
-  if (planType === 'free') {
-    return (
-      <Card
-        className={`h-full transition-all duration-200 ${
-          isCurrentPlan 
-            ? 'border-2 border-gray-400 dark:border-gray-500' 
-            : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-        }`}
-        styles={{ body: { padding: '28px 24px' } }}
-      >
-        <div className="text-center mb-6">
-          <Title level={4} className="!mb-4 !text-gray-800 dark:!text-gray-100">Free</Title>
-          <div className="mb-3">
-            <span className="text-4xl font-bold text-gray-900 dark:text-white">₹0</span>
-            <Text className="text-gray-500 dark:text-gray-400">/month</Text>
-          </div>
-          <Text className="text-gray-500 dark:text-gray-400 text-sm">
-            Perfect for trying out QR Studio
-          </Text>
-        </div>
-
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-          <FeatureItem text="Up to 5 QR codes" />
-          <FeatureItem text="Up to 100 scans per QR" />
-          <FeatureItem text="Basic templates" />
-          <FeatureItem text="Standard support" />
-          <FeatureItem text="Watermark included" />
-        </div>
-
-        <div className="mt-6">
-          <Button 
-            block 
-            size="large" 
-            disabled
-            className="!bg-gray-100 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 !text-gray-500 dark:!text-gray-400"
-          >
-            {isCurrentPlan ? 'Current Plan' : 'Free Forever'}
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  // Paid Plans
-  if (!plan) return null;
-
-  // Special case for Enterprise plan
-  if (planType === 'enterprise') {
-    return (
-      <Card
-        className={`h-full relative transition-all duration-200 ${
-          isCurrentPlan 
-            ? 'border-2 border-gray-500 dark:border-gray-400' 
-            : isPopular 
-              ? 'border-2 border-gray-400 dark:border-gray-500' 
-              : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-        }`}
-        styles={{ body: { padding: '28px 24px' } }}
-      >
-        {isPopular && (
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <span className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-1 rounded-full text-xs font-medium">
-              Most Popular
-            </span>
-          </div>
-        )}
-        
-        <div className={`text-center mb-6 ${isPopular ? 'pt-2' : ''}`}>
-          <Title level={4} className="!mb-4 !text-gray-800 dark:!text-gray-100">{plan.name}</Title>
-          
-          <div className="mb-3">
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">
-              Unlimited power for enterprises
-            </Text>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-          <FeatureItem text={`${formatFeatureValue(plan.features.maxQRCodes)} QR codes`} />
-          <FeatureItem text={`${formatFeatureValue(plan.features.maxScansPerQR)} scans per QR`} />
-          <FeatureItem text="Advanced analytics" included={plan.features.analytics} />
-          <FeatureItem text="White label" included={plan.features.whiteLabel} />
-          <FeatureItem text="Remove watermark" included={plan.features.removeWatermark} />
-        </div>
-
-        <div className="mt-6">
-          <Button 
-            block 
-            size="large" 
-            type="primary"
-            onClick={handleContactSupport}
-            className="!bg-purple-600 hover:!bg-purple-700 !border-purple-600 hover:!border-purple-700"
-          >
-            Contact Support
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  const price = getPrice(plan, selectedDuration);
-  const monthlyPrice = selectedDuration === 12 ? Math.round(price / 12) : price;
+const PlanCard: React.FC<PlanCardProps> = ({ plan, cycle, action, featured, onTrial, loading, onSelect }) => {
+  const paid = plan.monthlyPrice > 0;
+  const perMonth = cycle === 12 ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice;
+  const saving = plan.monthlyPrice * 12 - plan.yearlyPrice;
+  const current = action === 'current';
+  const highlight = featured || current;
+  const actionable = action === 'upgrade' || action === 'switch' || action === 'contact';
+  const label = action === 'downgrade' && onTrial ? 'Included in your trial' : CTA[action];
 
   return (
-    <Card
-      className={`h-full relative transition-all duration-200 ${
-        isCurrentPlan 
-          ? 'border-2 border-gray-500 dark:border-gray-400' 
-          : isPopular 
-            ? 'border-2 border-gray-400 dark:border-gray-500' 
-            : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-      }`}
-      styles={{ body: { padding: '28px 24px' } }}
-    >
-      {isPopular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-1 rounded-full text-xs font-medium">
-            Most Popular
-          </span>
-        </div>
+    <article
+      className={cn(
+        'relative flex flex-col overflow-hidden rounded-xl border bg-card p-6 shadow-soft',
+        highlight ? 'border-primary/50 shadow-card' : 'border-border'
       )}
-      
-      <div className={`text-center mb-6 ${isPopular ? 'pt-2' : ''}`}>
-        <Title level={4} className="!mb-4 !text-gray-800 dark:!text-gray-100">{plan.name}</Title>
-        
-        {planType !== 'enterprise' && (
-          <div className="mb-3">
-            <span className="text-4xl font-bold text-gray-900 dark:text-white">₹{monthlyPrice}</span>
-            <Text className="text-gray-500 dark:text-gray-400">/month</Text>
-            {selectedDuration === 12 && (
-              <div className="mt-1">
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">Billed ₹{price} annually</Text>
-                {price < plan.monthlyPrice * 12 && (
-                  <Text className="text-green-600 dark:text-green-500 text-sm ml-2 font-medium">
-                    Save ₹{plan.monthlyPrice * 12 - price}
-                  </Text>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-        
-        <Text className="text-gray-500 dark:text-gray-400 text-sm">
-          {planType === 'basic' && 'Great for small businesses'}
-          {planType === 'pro' && 'Perfect for growing businesses'}
-          {planType === 'enterprise' && 'Unlimited power for enterprises'}
-        </Text>
-      </div>
+    >
+      {highlight && (
+        <span className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_70%_100%_at_50%_0%,hsl(var(--primary)/0.14),transparent_70%)]" />
+      )}
 
-      <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-        <FeatureItem text={`${formatFeatureValue(plan.features.maxQRCodes)} QR codes`} />
-        <FeatureItem text={`${formatFeatureValue(plan.features.maxScansPerQR)} scans per QR`} />
-        <FeatureItem text="Advanced analytics" included={plan.features.analytics} />
-        <FeatureItem text="White label" included={plan.features.whiteLabel} />
-        <FeatureItem text="Remove watermark" included={plan.features.removeWatermark} />
+      <div className="relative flex items-start justify-between gap-3">
+        <h3 className="text-[19px] font-bold tracking-[-0.02em] text-foreground">{plan.name}</h3>
+        {current ? (
+          <span className="inline-flex h-6 items-center gap-1 rounded-full bg-primary px-2.5 text-[11.5px] font-semibold text-primary-foreground">
+            <Check size={12} strokeWidth={2.75} />
+            {onTrial ? 'Your trial' : 'Current'}
+          </span>
+        ) : featured ? (
+          <span className="inline-flex h-6 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11.5px] font-semibold text-primary">
+            <Sparkles size={12} />
+            Most popular
+          </span>
+        ) : null}
       </div>
+      <p className="relative mt-1 min-h-[36px] text-xs leading-relaxed text-muted-foreground">{plan.tagline}</p>
 
-      <div className="mt-6">
-        {/* Show Contact Support for Enterprise plans */}
-        {planType === 'enterprise' ? (
-          <Button 
-            block 
-            size="large" 
-            type="primary"
-            onClick={handleContactSupport}
-            className="!bg-purple-600 hover:!bg-purple-700 !border-purple-600 hover:!border-purple-700"
-          >
-            Contact Support
-          </Button>
-        ) : subscription?.planType === 'enterprise' ? (
-          <Button 
-            block 
-            size="large" 
-            type="primary"
-            onClick={handleContactSupport}
-            className="!bg-purple-600 hover:!bg-purple-700 !border-purple-600 hover:!border-purple-700"
-          >
-            Contact Support
-          </Button>
-        ) : isCurrentPlan ? (
-          <Button 
-            block 
-            size="large" 
-            disabled
-            className="!bg-gray-100 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 !text-gray-500 dark:!text-gray-400"
-          >
-            Current Plan
-          </Button>
-        ) : !canUpgrade ? (
-          <Button 
-            block 
-            size="large" 
-            disabled
-            className="!bg-gray-100 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 !text-gray-500 dark:!text-gray-400"
-          >
-            {subscription?.planType === 'trial' ? 'Included in Trial' : 'Downgrade Not Available'}
-          </Button>
+      <div className="relative mt-5 flex items-baseline gap-1.5">
+        {plan.key === 'enterprise' ? (
+          <span className="text-[32px] font-bold leading-none tracking-[-0.04em] text-foreground">Custom</span>
         ) : (
-          <Button
-            block
-            size="large"
-            type={isPopular ? 'primary' : 'default'}
-            loading={processingPlan === planType}
-            onClick={() => onSelectPlan(planType)}
-            className={isPopular 
-              ? '!bg-gray-900 dark:!bg-white !border-gray-900 dark:!border-white !text-white dark:!text-gray-900 hover:!bg-gray-800 dark:hover:!bg-gray-100' 
-              : '!border-gray-300 dark:!border-gray-600 !text-gray-700 dark:!text-gray-300 hover:!border-gray-400 dark:hover:!border-gray-500'
-            }
-          >
-            {subscription?.planType === 'free' ? 'Upgrade Now' : 'Switch Plan'}
-          </Button>
+          <>
+            <span className="text-[40px] font-bold leading-none tracking-[-0.045em] text-foreground">{formatCurrency(perMonth)}</span>
+            <span className="text-[13px] text-muted-foreground">/ month</span>
+          </>
         )}
       </div>
-    </Card>
+      <div className="relative mt-2 min-h-[18px] text-xs">
+        {paid && cycle === 12 && plan.key !== 'enterprise' && (
+          <span className="text-muted-foreground">
+            {formatCurrency(plan.yearlyPrice)} billed yearly
+            {saving > 0 && <span className="ml-1.5 font-semibold text-[var(--viz-good)]">Save {formatCurrency(saving)}</span>}
+          </span>
+        )}
+      </div>
+
+      <Button
+        fullWidth
+        size="md"
+        mt="lg"
+        variant={actionable && highlight ? 'filled' : actionable ? 'default' : 'light'}
+        disabled={!actionable}
+        loading={loading}
+        leftSection={action === 'contact' ? <Mail size={15} /> : actionable ? <CreditCard size={15} /> : undefined}
+        rightSection={action === 'upgrade' ? <ArrowUpRight size={15} /> : undefined}
+        onClick={() => (action === 'contact' ? (window.location.href = SUPPORT_MAILTO) : onSelect(plan))}
+      >
+        {label}
+      </Button>
+
+      <div className="my-5 h-px bg-border" />
+
+      <ul className="flex flex-1 flex-col gap-2.5">
+        {featureLines(plan.features).map((line) => (
+          <li key={line} className="flex items-start gap-2.5 text-[12.5px] leading-snug text-muted-foreground">
+            <span className="mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Check size={11} strokeWidth={3} />
+            </span>
+            {line}
+          </li>
+        ))}
+      </ul>
+    </article>
   );
 };
 

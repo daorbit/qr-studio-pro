@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react';
-import {
-  Modal,
-  Form,
-  Select,
-  DatePicker,
-  Button,
-  message,
-  Descriptions,
-  Tag,
-  Space,
-  Divider,
-} from 'antd';
-import { CrownOutlined, CalendarOutlined, UserOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Badge, Button, Divider, Group, Loader, Modal, Select, Table, Text } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+import { Crown, Calendar, User } from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '@/lib/api';
-
-const { Option } = Select;
+import { message } from '@/lib/notify';
+import { planColor, statusColor } from './adminColors';
 
 interface UserSubscriptionModalProps {
   visible: boolean;
@@ -46,20 +36,22 @@ interface UserSubscriptionData {
 }
 
 const planOptions = [
-  { value: 'free', label: 'Free Plan', color: 'default' },
-  { value: 'basic', label: 'Basic Plan', color: 'blue' },
-  { value: 'pro', label: 'Pro Plan', color: 'gold' },
-  { value: 'enterprise', label: 'Enterprise Plan', color: 'purple' },
-  { value: 'trial', label: 'Trial Plan (Premium)', color: 'orange' },
-] as const;
+  { value: 'free', label: 'Free Plan' },
+  { value: 'basic', label: 'Basic Plan' },
+  { value: 'pro', label: 'Pro Plan' },
+  { value: 'enterprise', label: 'Enterprise Plan' },
+  { value: 'trial', label: 'Trial Plan (Premium)' },
+];
 
 const planFeatures = {
   free: { maxQRCodes: 5, maxScansPerQR: 20 },
   basic: { maxQRCodes: 50, maxScansPerQR: 1000 },
   pro: { maxQRCodes: 200, maxScansPerQR: 10000 },
   enterprise: { maxQRCodes: -1, maxScansPerQR: -1 },
-  trial: { maxQRCodes: -1, maxScansPerQR: -1 }, // Premium unlimited
+  trial: { maxQRCodes: -1, maxScansPerQR: -1 },
 };
+
+const formatLimit = (value: number) => (value === -1 ? 'Unlimited' : value.toLocaleString());
 
 const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   visible,
@@ -69,12 +61,11 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   userEmail,
   onSuccess,
 }) => {
-  const [form] = Form.useForm();
+  const [planType, setPlanType] = useState<string>('free');
+  const [endDate, setEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
-  const [currentData, setCurrentData] = useState<UserSubscriptionData | null>(
-    null
-  );
+  const [currentData, setCurrentData] = useState<UserSubscriptionData | null>(null);
 
   useEffect(() => {
     if (visible && userId) {
@@ -85,18 +76,14 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   const fetchCurrentSubscription = async () => {
     setDataLoading(true);
     try {
-      const { data } = await api.get(
-        `/admin/users/${userId}/subscription`
-      );
+      const { data } = await api.get(`/admin/users/${userId}/subscription`);
 
       if (data?.success) {
         setCurrentData(data.data);
-        form.setFieldsValue({
-          planType: data.data.subscription?.planType ?? 'free',
-          endDate: data.data.subscription?.endDate
-            ? dayjs(data.data.subscription.endDate)
-            : null,
-        });
+        setPlanType(data.data.subscription?.planType ?? 'free');
+        setEndDate(
+          data.data.subscription?.endDate ? dayjs(data.data.subscription.endDate).format('YYYY-MM-DD') : null
+        );
       }
     } catch (err) {
       message.error('Failed to fetch subscription data');
@@ -105,20 +92,25 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleCancel = () => {
+    setPlanType('free');
+    setEndDate(null);
+    setCurrentData(null);
+    onCancel();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!userId) return;
 
     setLoading(true);
     try {
       const payload = {
-        planType: values.planType,
-        endDate: values.endDate?.toISOString() ?? null,
+        planType,
+        endDate: planType !== 'free' && endDate ? dayjs(endDate).toISOString() : null,
       };
 
-      const { data } = await api.put(
-        `/admin/users/${userId}/subscription`,
-        payload
-      );
+      const { data } = await api.put(`/admin/users/${userId}/subscription`, payload);
 
       if (data?.success) {
         message.success('Subscription updated successfully');
@@ -134,17 +126,11 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
     }
   };
 
-  const handleCancel = () => {
-    form.resetFields();
-    setCurrentData(null);
-    onCancel();
-  };
-
   const renderCurrentSubscription = () => {
     if (!currentData?.subscription) {
       return (
-        <div className="text-center py-4">
-          <Tag>No active subscription</Tag>
+        <div className="py-4 text-center">
+          <Badge color="gray">No active subscription</Badge>
         </div>
       );
     }
@@ -153,139 +139,101 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
     const features = planFeatures[subscription.planType];
 
     return (
-      <Descriptions
-        title={
-          <span>
-            <UserOutlined /> Current Subscription
-          </span>
-        }
-        bordered
-        size="small"
-        column={1}
-        className="mb-6"
-      >
-        <Descriptions.Item label="Plan">
-          <Tag
-            color={
-              planOptions.find(p => p.value === subscription.planType)?.color
-            }
-          >
-            {
-              planOptions.find(p => p.value === subscription.planType)?.label
-            }
-          </Tag>
-          {user.isOnTrial && <Tag color="orange">Trial</Tag>}
-        </Descriptions.Item>
-
-        <Descriptions.Item label="Status">
-          <Tag color={subscription.status === 'active' ? 'green' : 'red'}>
-            {subscription.status}
-          </Tag>
-        </Descriptions.Item>
-
-        <Descriptions.Item label="Limits">
-          <Space direction="vertical" size={0}>
-            <span>
-              QR Codes:{' '}
-              {features.maxQRCodes === -1
-                ? 'Unlimited'
-                : features.maxQRCodes}
-            </span>
-            <span>
-              Scans per QR:{' '}
-              {features.maxScansPerQR === -1
-                ? 'Unlimited'
-                : features.maxScansPerQR.toLocaleString()}
-            </span>
-          </Space>
-        </Descriptions.Item>
-
-        {subscription.endDate && (
-          <Descriptions.Item label="End Date">
-            {dayjs(subscription.endDate).format('MMMM D, YYYY')}
-          </Descriptions.Item>
-        )}
-      </Descriptions>
+      <div className="mb-2">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <User size={14} /> Current Subscription
+        </div>
+        <Table variant="vertical" layout="fixed" withTableBorder>
+          <Table.Tbody>
+            <Table.Tr>
+              <Table.Th w={140}>Plan</Table.Th>
+              <Table.Td>
+                <Group gap={4}>
+                  <Badge color={planColor(subscription.planType)}>
+                    {planOptions.find((p) => p.value === subscription.planType)?.label}
+                  </Badge>
+                  {user.isOnTrial && <Badge color={planColor('trial')}>Trial</Badge>}
+                </Group>
+              </Table.Td>
+            </Table.Tr>
+            <Table.Tr>
+              <Table.Th>Status</Table.Th>
+              <Table.Td>
+                <Badge color={statusColor(subscription.status)} tt="capitalize">{subscription.status}</Badge>
+              </Table.Td>
+            </Table.Tr>
+            <Table.Tr>
+              <Table.Th>Limits</Table.Th>
+              <Table.Td>
+                <div>QR Codes: {formatLimit(features.maxQRCodes)}</div>
+                <div>Scans per QR: {formatLimit(features.maxScansPerQR)}</div>
+              </Table.Td>
+            </Table.Tr>
+            {subscription.endDate && (
+              <Table.Tr>
+                <Table.Th>End Date</Table.Th>
+                <Table.Td>{dayjs(subscription.endDate).format('MMMM D, YYYY')}</Table.Td>
+              </Table.Tr>
+            )}
+          </Table.Tbody>
+        </Table>
+      </div>
     );
   };
 
   return (
     <Modal
-      open={visible}
+      opened={visible}
+      onClose={handleCancel}
+      size={600}
       title={
-        <span>
-          <CrownOutlined /> Manage Subscription – {userName}
-        </span>
+        <Group gap="xs">
+          <Crown size={16} />
+          <span>Manage Subscription – {userName}</span>
+        </Group>
       }
-      onCancel={handleCancel}
-      footer={null}
-      width={600}
-      destroyOnHidden
     >
       {dataLoading ? (
-        <div className="text-center py-8">Loading subscription data…</div>
+        <div className="flex justify-center py-8">
+          <Loader size="sm" />
+        </div>
       ) : (
         <>
-          <div className="mb-4">
-            <strong>{userEmail}</strong>
-          </div>
+          <Text fw={600} mb="md">{userEmail}</Text>
 
           {renderCurrentSubscription()}
 
-          <Divider>Update Subscription</Divider>
+          <Divider label="Update Subscription" labelPosition="center" my="lg" />
 
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{ planType: 'free' }}
-            onFinish={handleSubmit}
-          >
-            <Form.Item
-              name="planType"
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Select
               label="Plan Type"
-              rules={[{ required: true }]}
-            >
-              <Select size="large">
-                {planOptions.map(option => (
-                  <Option key={option.value} value={option.value}>
-                    <Space>
-                      <Tag color={option.color}>{option.label}</Tag>
-                    </Space>
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+              data={planOptions}
+              value={planType}
+              onChange={(value) => setPlanType(value ?? 'free')}
+              allowDeselect={false}
+              renderOption={({ option }) => <Badge color={planColor(option.value)}>{option.label}</Badge>}
+            />
 
-            <Form.Item
-              noStyle
-              shouldUpdate={(p, c) => p.planType !== c.planType}
-            >
-              {({ getFieldValue }) =>
-                getFieldValue('planType') !== 'free' && (
-                  <Form.Item
-                    name="endDate"
-                    label="End Date (Optional)"
-                  >
-                    <DatePicker
-                      size="large"
-                      disabledDate={d =>
-                        d && d.isBefore(dayjs().startOf('day'))
-                      }
-                      suffixIcon={<CalendarOutlined />}
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                )
-              }
-            </Form.Item>
+            {planType !== 'free' && (
+              <DatePickerInput
+                label="End Date (Optional)"
+                placeholder="Pick a date"
+                value={endDate}
+                onChange={setEndDate}
+                minDate={dayjs().format('YYYY-MM-DD')}
+                leftSection={<Calendar size={16} />}
+                clearable
+              />
+            )}
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button onClick={handleCancel}>Cancel</Button>
-              <Button type="primary" htmlType="submit" loading={loading}>
+            <Group justify="flex-end" gap="sm" pt="sm">
+              <Button variant="default" onClick={handleCancel}>Cancel</Button>
+              <Button type="submit" loading={loading}>
                 Update Subscription
               </Button>
-            </div>
-          </Form>
+            </Group>
+          </form>
         </>
       )}
     </Modal>

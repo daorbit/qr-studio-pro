@@ -1,9 +1,11 @@
 import React from 'react';
-import { Card, Row, Col } from 'antd';
-import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ScanData, DeviceData } from '@/types/analytics';
-
-const CHART_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Activity, Smartphone } from 'lucide-react';
+import type { DeviceData, ScanData } from '@/types/analytics';
+import ChartPanel from './chart/ChartPanel';
+import ChartTooltip from './chart/ChartTooltip';
+import DonutBreakdown from './chart/DonutBreakdown';
+import { AXIS_PROPS, GRID_PROPS, PRIMARY_COLOR, formatNumber } from './chart/chartTheme';
 
 interface MainChartsProps {
   scansOverTime: ScanData[];
@@ -11,88 +13,59 @@ interface MainChartsProps {
 }
 
 const MainCharts: React.FC<MainChartsProps> = ({ scansOverTime, deviceData }) => {
-  // Custom tooltip component for better visuals
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="glass-card p-3 rounded-lg shadow-lg">
-          <p className="font-semibold text-sm mb-1">{label}</p>
-          <p className="text-primary text-lg font-bold">
-            {payload[0].value.toLocaleString()} scans
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const total = scansOverTime.reduce((sum, d) => sum + (d.scans || 0), 0);
+  const peak = scansOverTime.reduce<ScanData | null>((best, d) => (!best || d.scans > best.scans ? d : best), null);
 
   return (
-    <Row gutter={[16, 16]}>
-      <Col xs={24} lg={16}>
-        <Card title="Scan Activity (Last 30 Days)" className="chart-container glass-card">
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={scansOverTime}>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <ChartPanel
+        title="Scan activity"
+        description="Daily scans over the last 30 days"
+        icon={Activity}
+        className="lg:col-span-2"
+        empty={total === 0}
+        emptyText="No scans in the last 30 days"
+        extra={
+          peak && peak.scans > 0 ? (
+            <div className="text-right">
+              <div className="text-[11px] text-muted-foreground">Busiest day</div>
+              <div className="text-[13px] font-semibold text-foreground">
+                {peak.date} · {formatNumber(peak.scans)}
+              </div>
+            </div>
+          ) : null
+        }
+      >
+        <div className="h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={scansOverTime} margin={{ top: 8, right: 4, left: -16, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorScansMain" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
+                <linearGradient id="scanActivityFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={PRIMARY_COLOR} stopOpacity={0.22} />
+                  <stop offset="100%" stopColor={PRIMARY_COLOR} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={11} interval={4} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area 
-                type="monotone" 
-                dataKey="scans" 
-                stroke="#6366f1" 
-                strokeWidth={3} 
-                fillOpacity={1} 
-                fill="url(#colorScansMain)"
-                animationDuration={1000}
-                animationBegin={0}
+              <CartesianGrid {...GRID_PROPS} />
+              <XAxis dataKey="date" {...AXIS_PROPS} interval="preserveStartEnd" minTickGap={24} />
+              <YAxis {...AXIS_PROPS} allowDecimals={false} width={40} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeDasharray: '3 3' }} />
+              <Area
+                type="monotone"
+                dataKey="scans"
+                stroke={PRIMARY_COLOR}
+                strokeWidth={2}
+                fill="url(#scanActivityFill)"
+                activeDot={{ r: 4, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
               />
             </AreaChart>
           </ResponsiveContainer>
-        </Card>
-      </Col>
-      <Col xs={24} lg={8}>
-        <Card title="Device Distribution" className="chart-container glass-card h-full">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie 
-                data={deviceData} 
-                cx="50%" 
-                cy="50%" 
-                innerRadius={60} 
-                outerRadius={100} 
-                paddingAngle={5} 
-                dataKey="value" 
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                animationBegin={0}
-                animationDuration={800}
-              >
-                {deviceData.map((_, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    className="hover:opacity-80 transition-opacity cursor-pointer"
-                  />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  border: '1px solid hsl(var(--border))', 
-                  borderRadius: '8px',
-                  backdropFilter: 'blur(10px)'
-                }} 
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-      </Col>
-    </Row>
+        </div>
+      </ChartPanel>
+
+      <ChartPanel title="Devices" description="What people scan with" icon={Smartphone} empty={!deviceData.some((d) => d.value > 0)}>
+        <DonutBreakdown data={deviceData} />
+      </ChartPanel>
+    </div>
   );
 };
 

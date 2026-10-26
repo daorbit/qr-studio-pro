@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getNextPath } from '@/lib/authRedirect';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { authAPI } from '@/lib/api';
 import { GOOGLE_CLIENT_ID, GsiButtonOptions, loadGoogleIdentity } from '@/lib/googleIdentity';
 import { useAppDispatch } from '@/store';

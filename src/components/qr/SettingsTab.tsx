@@ -1,66 +1,48 @@
 import React from 'react';
-import { Typography, Slider, Radio, Switch } from 'antd';
+import { SegmentedControl, Slider, Switch } from '@mantine/core';
 import { QRStyling } from '../../types/qrcode';
-
-const { Title, Text } = Typography;
+import FieldGroup from '@/components/create/FieldGroup';
+import { ERROR_LEVELS } from './style/styleOptions';
 
 interface SettingsTabProps {
   styling: QRStyling;
   onStyleChange: (styling: QRStyling) => void;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ styling, onStyleChange }) => {
-  return (
-    <div className="pt-4">
-      <div className="mb-6">
-        <Text strong className="block mb-3">
-          Size: {styling.size}px
-        </Text>
-        <Slider
-          min={100}
-          max={400}
-          value={styling.size}
-          onChange={(value) => onStyleChange({ ...styling, size: value })}
-        />
-        <Text type="secondary" className="block mt-2 text-xs">
-          Changes are reflected in the live preview. Larger sizes provide better scannability.
-        </Text>
-      </div>
+const SettingsTab: React.FC<SettingsTabProps> = ({ styling, onStyleChange }) => (
+  <div className="space-y-8">
+    <FieldGroup label="Size" value={`${styling.size}px`} description="Larger codes are easier to scan from a distance.">
+      <Slider
+        min={100}
+        max={400}
+        step={10}
+        value={styling.size}
+        onChange={(size) => onStyleChange({ ...styling, size })}
+        label={(value) => `${value}px`}
+      />
+    </FieldGroup>
 
-      <div className="mb-6">
-        <Text strong className="block mb-3">Error Correction Level</Text>
-        <Radio.Group
-          value={styling.level}
-          onChange={(e) => onStyleChange({ ...styling, level: e.target.value })}
-          optionType="button"
-          buttonStyle="solid"
-        >
-          <Radio.Button value="L">Low (7%)</Radio.Button>
-          <Radio.Button value="M">Medium (15%)</Radio.Button>
-          <Radio.Button value="Q">Quartile (25%)</Radio.Button>
-          <Radio.Button value="H">High (30%)</Radio.Button>
-        </Radio.Group>
-        <Text type="secondary" className="block mt-2 text-xs">
-          Higher levels allow more damage but result in denser QR codes
-        </Text>
-      </div>
+    <FieldGroup label="Error correction" description="How much of the code can be covered or damaged and still scan. Higher values make the code denser.">
+      <SegmentedControl
+        fullWidth
+        data={ERROR_LEVELS}
+        value={styling.level}
+        onChange={(level) => onStyleChange({ ...styling, level: level as QRStyling['level'] })}
+      />
+    </FieldGroup>
 
-      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-        <div>
-          <Text strong>Include Margin</Text>
-          <Text type="secondary" className="block text-xs">
-            Add white space around the QR code for better scanning
-          </Text>
-        </div>
-        <Switch
-          checked={styling.includeMargin}
-          onChange={(checked) =>
-            onStyleChange({ ...styling, includeMargin: checked })
-          }
-        />
+    <div className="flex items-center justify-between gap-4 rounded-2xl bg-foreground/[0.04] p-4">
+      <div>
+        <div className="text-[13px] font-semibold text-foreground">Quiet zone</div>
+        <div className="text-xs text-muted-foreground">Add space around the code so scanners lock on faster.</div>
       </div>
+      <Switch
+        checked={styling.includeMargin}
+        onChange={(e) => onStyleChange({ ...styling, includeMargin: e.currentTarget.checked })}
+        aria-label="Quiet zone"
+      />
     </div>
-  );
-};
+  </div>
+);
 
 export default SettingsTab;

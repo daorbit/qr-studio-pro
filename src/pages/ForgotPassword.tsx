@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Input, Button, message } from "antd";
+import { Button, TextInput } from "@mantine/core";
+import { message } from "@/lib/notify";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "@/lib/api";
@@ -48,14 +49,9 @@ const ForgotPassword: React.FC = () => {
       <AuthHeader title="Forgot your password?" subtitle="Enter your email and we'll send you a code to reset it." />
 
       <form onSubmit={handleSendOTP} className="space-y-4" aria-label="Reset password form" noValidate>
-        <div>
-          <label htmlFor="forgot-email" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-            Email
-          </label>
-          <Input id="forgot-email" type="email" autoComplete="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
+        <TextInput label="Email" type="email" autoComplete="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
 
-        <Button type="primary" htmlType="submit" loading={loading} block>
+        <Button type="submit" loading={loading} fullWidth>
           Send reset code
         </Button>
       </form>

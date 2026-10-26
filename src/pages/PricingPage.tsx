@@ -1,58 +1,73 @@
 import React from 'react';
-import { Typography, Breadcrumb } from 'antd';
-import { Home, CreditCard } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useSearchParams } from 'react-router-dom';
+import { Tabs } from '@mantine/core';
+import { CreditCard, Receipt } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import PageHeader from '@/components/layout/PageHeader';
+import { usePayment } from '@/hooks/usePayment';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { useQRCodes } from '@/hooks/useQRCodes';
 import PricingPlans from '@/components/payment/PricingPlans';
+import PlanOverview from '@/components/payment/billing/PlanOverview';
+import PaymentHistory from '@/components/payment/billing/PaymentHistory';
 
-const { Title, Paragraph } = Typography;
+type BillingTab = 'plans' | 'history';
 
 const PricingPage: React.FC = () => {
-  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const tab: BillingTab = params.get('tab') === 'history' ? 'history' : 'plans';
+  const { subscription, plansLoading, subscriptionLoading } = usePayment();
+  const { workspace } = useWorkspace();
+  const { statsTotal } = useQRCodes();
+
+  const setTab = (next: string | null) => setParams(next === 'history' ? { tab: 'history' } : {}, { replace: true });
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        {/* Breadcrumb */}
-        <Breadcrumb
-          items={[
-            {
-              title: (
-                <span 
-                  className="flex items-center gap-2 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  <Home size={16} />
-                  Dashboard
-                </span>
-              )
-            },
-            {
-              title: (
-                <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <CreditCard size={16} />
-                  Pricing
-                </span>
-              )
-            }
-          ]}
-        />
+    <div className="animate-fade-in">
+      <PageHeader
+        title="Plans and billing"
+        description={workspace ? `What ${workspace.name} is on, what it could be on, and what it has paid.` : undefined}
+      />
 
-        {/* Page Header */}
-        <div className="text-center max-w-2xl mx-auto">
-          <Title level={2} className="!text-gray-900 dark:!text-white !mb-3">
-            Choose Your Plan
-          </Title>
-          <Paragraph className="text-gray-500 dark:text-gray-400 text-base">
-            Upgrade your QR code experience with advanced features, unlimited scans, 
-            and powerful analytics. Choose the plan that fits your needs.
-          </Paragraph>
+      {plansLoading || subscriptionLoading ? (
+        <div className="space-y-5">
+          <Skeleton className="h-[200px] rounded-xl" />
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[420px] rounded-xl" />
+            ))}
+          </div>
         </div>
+      ) : (
+        <div className="space-y-8">
+          {subscription && (
+            <PlanOverview
+              subscription={subscription}
+              qrCount={Number(statsTotal) || 0}
+              memberCount={workspace?.memberCount ?? 1}
+              onChangePlan={() => setTab('plans')}
+            />
+          )}
 
-        {/* Pricing Plans */}
-        <PricingPlans />
-      </div>
-    </DashboardLayout>
+          <Tabs value={tab} onChange={setTab} keepMounted={false}>
+            <Tabs.List className="mb-6">
+              <Tabs.Tab value="plans" leftSection={<CreditCard size={15} />}>
+                Plans
+              </Tabs.Tab>
+              <Tabs.Tab value="history" leftSection={<Receipt size={15} />}>
+                Payment history
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="plans">
+              <PricingPlans />
+            </Tabs.Panel>
+            <Tabs.Panel value="history">
+              <PaymentHistory />
+            </Tabs.Panel>
+          </Tabs>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -4,7 +4,6 @@ import qrCodesReducer from './slices/qrCodesSlice';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import analyticsReducer from './slices/analyticsSlice';
-import contactsReducer from './slices/contactsSlice';
 import qrAnalyticsReducer from './slices/qrAnalyticsSlice';
 import statsReducer from './slices/statsSlice';
 import adminReducer from './slices/adminSlice';
@@ -15,7 +14,6 @@ const appReducer = combineReducers({
   auth: authReducer,
   ui: uiReducer,
   analytics: analyticsReducer,
-  contacts: contactsReducer,
   qrAnalytics: qrAnalyticsReducer,
   stats: statsReducer,
   admin: adminReducer,

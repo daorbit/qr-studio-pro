@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Tabs, Alert } from 'antd';
+import { Alert, Tabs } from '@mantine/core';
+import { AlertCircle } from 'lucide-react';
 import useAdminSubscriptions from '@/hooks/useAdminSubscriptions';
 import StatsCards from './subscription/StatsCards';
 import SubscriptionTable from './subscription/SubscriptionTable';
 import SearchHeader from './subscription/SearchHeader';
 import PaymentTable from './subscription/PaymentTable';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminSubscriptions: React.FC = () => {
-  const isMobile = useIsMobile();
   const {
     stats,
     subscriptions,
@@ -26,27 +25,37 @@ const AdminSubscriptions: React.FC = () => {
   } = useAdminSubscriptions();
 
   const [localSearch, setLocalSearch] = useState(search);
-  const [activeTab, setActiveTab] = useState('1');
 
   const onSearch = () => {
     handleSearch(localSearch);
   };
 
-  const tabItems = [
-    {
-      key: '1',
-      label: 'Subscriptions',
-      children: (
-        <div>
-          <SearchHeader
-            title="Active Subscriptions"
-            description="View all user subscriptions and their details"
-            searchValue={localSearch}
-            onSearchChange={setLocalSearch}
-            onSearch={onSearch}
-            onRefresh={refresh}
-            loading={loading}
-          />
+  const searchProps = {
+    searchValue: localSearch,
+    onSearchChange: setLocalSearch,
+    onSearch,
+    onRefresh: refresh,
+    loading,
+  };
+
+  return (
+    <div>
+      <StatsCards stats={stats} />
+
+      {error && (
+        <Alert color="red" title="Failed to load subscription data" icon={<AlertCircle size={16} />} className="mb-4">
+          {error}
+        </Alert>
+      )}
+
+      <Tabs defaultValue="subscriptions">
+        <Tabs.List className="mb-4">
+          <Tabs.Tab value="subscriptions">Subscriptions</Tabs.Tab>
+          <Tabs.Tab value="payments">Payments</Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="subscriptions">
+          <SearchHeader title="Active Subscriptions" description="View all user subscriptions and their details" {...searchProps} />
           <SubscriptionTable
             subscriptions={subscriptions}
             loading={loading}
@@ -55,23 +64,10 @@ const AdminSubscriptions: React.FC = () => {
             total={totalSubs}
             onTableChange={handleTableChange}
           />
-        </div>
-      ),
-    },
-    {
-      key: '2',
-      label: 'Payments',
-      children: (
-        <div>
-          <SearchHeader
-            title="Payment History"
-            description="Track all payment transactions"
-            searchValue={localSearch}
-            onSearchChange={setLocalSearch}
-            onSearch={onSearch}
-            onRefresh={refresh}
-            loading={loading}
-          />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="payments">
+          <SearchHeader title="Payment History" description="Track all payment transactions" {...searchProps} />
           <PaymentTable
             payments={payments}
             loading={loading}
@@ -80,31 +76,8 @@ const AdminSubscriptions: React.FC = () => {
             total={totalPayments}
             onTableChange={handleTableChange}
           />
-        </div>
-      ),
-    },
-  ];
-
-  return (
-    <div>
-      <StatsCards stats={stats} />
-      
-      {error && (
-        <Alert
-          type="error"
-          message="Failed to load subscription data"
-          description={error}
-          className="mb-4"
-          showIcon
-        />
-      )}
-      
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={tabItems}
-        size={isMobile ? 'small' : 'large'}
-      />
+        </Tabs.Panel>
+      </Tabs>
     </div>
   );
 };

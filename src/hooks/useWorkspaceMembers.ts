@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { workspaceAPI } from '@/lib/workspaceApi';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import type { WorkspaceInvite, WorkspaceMember, WorkspaceRole } from '@/types/workspace';

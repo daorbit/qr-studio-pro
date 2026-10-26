@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Input, message } from 'antd';
+import { Button, TextInput } from '@mantine/core';
 import { Building2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/useWorkspace';
-import { useSubscription } from '@/context/SubscriptionContext';
-import WorkspaceMark from './WorkspaceMark';
-import WorkspaceDangerZone from './WorkspaceDangerZone';
-import { ROLE_LABELS } from './members/roles';
+import { errorMessage, message } from '@/lib/notify';
+import SettingsCard from '@/components/common/SettingsCard';
 
 const WorkspaceGeneralSettings: React.FC = () => {
-  const { workspace, role, canManage, updateWorkspace } = useWorkspace();
-  const { getPlanDisplayName } = useSubscription();
+  const { workspace, canManage, updateWorkspace } = useWorkspace();
   const [name, setName] = useState(workspace?.name ?? '');
   const [saving, setSaving] = useState(false);
 
@@ -19,49 +16,40 @@ const WorkspaceGeneralSettings: React.FC = () => {
 
   if (!workspace) return null;
 
-  const dirty = name.trim() && name.trim() !== workspace.name;
+  const dirty = Boolean(name.trim()) && name.trim() !== workspace.name;
 
-  const save = async () => {
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dirty) return;
     setSaving(true);
     try {
       await updateWorkspace({ name: name.trim() });
       message.success('Workspace renamed');
     } catch (error) {
-      message.error(typeof error === 'string' ? error : 'Could not save');
+      message.error(errorMessage(error, 'Could not save'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Card className="shadow-sm">
-      <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mb-6">
-        <Building2 size={18} />
-        Workspace
-      </h3>
-
-      <div className="flex items-center gap-4 mb-6">
-        <WorkspaceMark name={workspace.name} size="lg" />
-        <div className="min-w-0">
-          <div className="text-lg font-semibold text-foreground truncate">{workspace.name}</div>
-          <div className="text-sm text-muted-foreground">
-            {getPlanDisplayName()} plan · {workspace.memberCount} member{workspace.memberCount === 1 ? '' : 's'} · You are {role ? ROLE_LABELS[role] : ''}
-          </div>
-        </div>
-      </div>
-
-      <label className="block text-sm font-medium text-foreground mb-2">Workspace name</label>
-      <div className="flex gap-2 mb-8">
-        <Input size="large" value={name} maxLength={60} disabled={!canManage} onChange={(e) => setName(e.target.value)} />
+    <SettingsCard icon={Building2} title="General" description="The name everyone in this workspace sees.">
+      <form onSubmit={save} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <TextInput
+          label="Workspace name"
+          value={name}
+          maxLength={60}
+          disabled={!canManage}
+          onChange={(e) => setName(e.currentTarget.value)}
+          className="flex-1"
+        />
         {canManage && (
-          <Button type="primary" size="large" disabled={!dirty} loading={saving} onClick={save}>
+          <Button type="submit" disabled={!dirty} loading={saving}>
             Save
           </Button>
         )}
-      </div>
-
-      <WorkspaceDangerZone />
-    </Card>
+      </form>
+    </SettingsCard>
   );
 };
 

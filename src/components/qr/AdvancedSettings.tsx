@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, Input, DatePicker, InputNumber, Typography, Alert, Button } from 'antd';
-import { Crown, ArrowUpRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { NumberInput, PasswordInput } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
+import { CalendarClock, Lock, ScanLine, type LucideIcon } from 'lucide-react';
+import dayjs from 'dayjs';
 import { usePayment } from '@/hooks/usePayment';
-import moment from 'moment';
-
-const { Text } = Typography;
+import { cn } from '@/lib/utils';
+import UpgradeNotice from '@/components/common/UpgradeNotice';
 
 interface AdvancedSettingsProps {
   password?: string | null;
@@ -16,6 +16,26 @@ interface AdvancedSettingsProps {
   onScanLimitChange: (v: number | null) => void;
 }
 
+const SettingRow: React.FC<{ icon: LucideIcon; title: string; description: string; children: React.ReactNode }> = ({
+  icon: Icon,
+  title,
+  description,
+  children,
+}) => (
+  <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-6">
+    <div className="flex min-w-0 flex-1 items-start gap-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.05] text-foreground">
+        <Icon size={17} />
+      </span>
+      <div className="min-w-0">
+        <div className="text-[13.5px] font-semibold text-foreground">{title}</div>
+        <div className="text-xs text-muted-foreground">{description}</div>
+      </div>
+    </div>
+    <div className="sm:w-64">{children}</div>
+  </div>
+);
+
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   password,
   onPasswordChange,
@@ -24,95 +44,52 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   scanLimit,
   onScanLimitChange,
 }) => {
-  const navigate = useNavigate();
-  const { subscription, hasFeatureAccess } = usePayment();
-  
-  // Check if user has access to advanced settings (not free plan)
-  const canUseAdvancedSettings = subscription?.planType !== 'free' && subscription?.planType;
-  
+  const { subscription } = usePayment();
+  const canUse = Boolean(subscription?.planType && subscription.planType !== 'free');
+
   return (
-    <div className="space-y-4">
-      <Card size="small" title="Configure advanced settings">
-        {/* Premium Feature Alert for Free Users */}
-        {!canUseAdvancedSettings && (
-          <Alert
-            type="info"
-            showIcon
-            icon={<Crown size={16} />}
-            message="Premium Feature"
-            description={
-              <div className="flex items-center justify-between">
-                <span>Upgrade to access password protection, expiration dates, and custom scan limits</span>
-                <Button 
-                  type="primary" 
-                  size="small" 
-                  icon={<ArrowUpRight size={14} />}
-                  onClick={() => navigate('/pricing')}
-                >
-                  Upgrade Now
-                </Button>
-              </div>
-            }
-            className="mb-4"
+    <div className="space-y-5">
+      {!canUse && <UpgradeNotice description="Upgrade to add passwords, expiry dates and custom scan limits." />}
+
+      <div className={cn('divide-y divide-border', !canUse && 'pointer-events-none opacity-50')}>
+        <SettingRow icon={Lock} title="Password" description="People must enter it before the link opens.">
+          <PasswordInput
+            placeholder="No password"
+            value={password || ''}
+            onChange={(e) => onPasswordChange(e.currentTarget.value || null)}
+            disabled={!canUse}
           />
-        )}
-        
-        <div className={`space-y-4 ${!canUseAdvancedSettings ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Text strong>Password Protection</Text>
-              {!canUseAdvancedSettings && <Crown size={12} className="text-amber-500" />}
-            </div>
-            <div className="mt-2">
-              <Input.Password
-                placeholder="Leave empty for no password"
-                value={password || ''}
-                onChange={(e) => onPasswordChange(e.target.value || null)}
-                disabled={!canUseAdvancedSettings}
-              />
-            </div>
-          </div>
+        </SettingRow>
 
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Text strong>Expiration Date</Text>
-              {!canUseAdvancedSettings && <Crown size={12} className="text-amber-500" />}
-            </div>
-            <div className="mt-2">
-              <DatePicker
-                showTime
-                style={{ width: '100%' }}
-                value={expirationDate ? moment(expirationDate) : null}
-                onChange={(dt) => onExpirationChange(dt ? dt.toISOString() : null)}
-                placeholder="Select expiration"
-                disabled={!canUseAdvancedSettings}
-              />
-            </div>
-          </div>
+        <SettingRow icon={CalendarClock} title="Expiry date" description="The code stops working after this moment.">
+          <DateTimePicker
+            placeholder="Never expires"
+            value={expirationDate ? dayjs(expirationDate).format('YYYY-MM-DD HH:mm:ss') : null}
+            onChange={(value) => onExpirationChange(value ? dayjs(value).toISOString() : null)}
+            minDate={dayjs().format('YYYY-MM-DD')}
+            clearable
+            disabled={!canUse}
+          />
+        </SettingRow>
 
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Text strong>Scan Limit</Text>
-              {!canUseAdvancedSettings && <Crown size={12} className="text-amber-500" />}
-            </div>
-            <div className="mt-2 flex items-center gap-3">
-              <InputNumber
-                min={1}
-                placeholder="Set maximum number of scans"
-                value={scanLimit || undefined}
-                onChange={(v) => onScanLimitChange(v ? Number(v) : null)}
-                disabled={!canUseAdvancedSettings}
-              />
-              <span className="text-sm text-muted-foreground">
-                {!canUseAdvancedSettings ? 'Free plan limited to 20 scans' : 'Leave empty for unlimited'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
+        <SettingRow
+          icon={ScanLine}
+          title="Scan limit"
+          description={canUse ? 'Leave empty for unlimited scans.' : 'The free plan allows 20 scans per code.'}
+        >
+          <NumberInput
+            min={1}
+            allowDecimal={false}
+            allowNegative={false}
+            placeholder="Unlimited"
+            value={scanLimit ?? ''}
+            onChange={(value) => onScanLimitChange(value === '' ? null : Number(value))}
+            disabled={!canUse}
+          />
+        </SettingRow>
+      </div>
     </div>
   );
 };
 
 export default AdvancedSettings;
-

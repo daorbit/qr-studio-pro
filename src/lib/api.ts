@@ -118,6 +118,11 @@ export const authAPI = {
     return response.data;
   },
 
+  saveOnboarding: async (data: { useCases: string[]; teamSize: string | null; referralSources: string[] }) => {
+    const response = await api.put('/auth/onboarding', data);
+    return response.data;
+  },
+
   getProfile: async () => {
     const response = await api.get('/auth/profile');
     return response.data;
@@ -360,29 +365,6 @@ export const adminAPI = {
 
   updateUser: async (id: string, data: { blocked?: boolean }) => {
     const response = await api.put(`/admin/users/${id}`, data);
-    return response.data;
-  },
-};
-
-// Contact API
-export const contactAPI = {
-  create: async (data: { name: string; email: string; subject: string; message: string }) => {
-    const response = await api.post('/contacts', data);
-    return response.data;
-  },
-  
-  getAll: async () => {
-    const response = await api.get('/contacts');
-    return response.data;
-  },
-  
-  updateStatus: async (id: string, status: string) => {
-    const response = await api.put(`/contacts/${id}`, { status });
-    return response.data;
-  },
-  
-  delete: async (id: string) => {
-    const response = await api.delete(`/contacts/${id}`);
     return response.data;
   },
 };

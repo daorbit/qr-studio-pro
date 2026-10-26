@@ -1,40 +1,30 @@
 import React from 'react';
-import { Switch } from 'antd';
+import { SegmentedControl } from '@mantine/core';
+import type { Cycle } from './billing/planCatalog';
 
 interface DurationToggleProps {
-  selectedDuration: 1 | 12;
-  onDurationChange: (duration: 1 | 12) => void;
+  selectedDuration: Cycle;
+  onDurationChange: (duration: Cycle) => void;
+  yearlySaving: number;
 }
 
-const DurationToggle: React.FC<DurationToggleProps> = ({
-  selectedDuration,
-  onDurationChange
-}) => {
-  return (
-    <div className="flex justify-center items-center mb-10">
-      <div className="inline-flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 py-2 px-5 rounded-full">
-        <span className={`text-sm font-medium transition-colors ${
-          selectedDuration === 1 ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
-        }`}>
-          Monthly
-        </span>
-        <Switch
-          checked={selectedDuration === 12}
-          onChange={(checked) => onDurationChange(checked ? 12 : 1)}
-        />
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium transition-colors ${
-            selectedDuration === 12 ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
-          }`}>
+const DurationToggle: React.FC<DurationToggleProps> = ({ selectedDuration, onDurationChange, yearlySaving }) => (
+  <SegmentedControl
+    value={String(selectedDuration)}
+    onChange={(value) => onDurationChange(Number(value) as Cycle)}
+    data={[
+      { value: '1', label: 'Monthly' },
+      {
+        value: '12',
+        label: (
+          <span className="inline-flex items-center gap-1.5">
             Yearly
+            {yearlySaving > 0 && <span className="text-[11px] font-semibold text-[var(--viz-good)]">−{yearlySaving}%</span>}
           </span>
-          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium px-2 py-0.5 rounded-full">
-            Save 20%
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
+        ),
+      },
+    ]}
+  />
+);
 
 export default DurationToggle;

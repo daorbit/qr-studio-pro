@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { useAppDispatch } from '@/store';
 import { googleSignIn } from '@/store/slices/authSlice';
 

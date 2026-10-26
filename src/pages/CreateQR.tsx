@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Button, Card, Typography, message } from 'antd';
-import { Check, Settings2, ChevronLeft, ChevronRight, Undo2 } from 'lucide-react';
+import { message } from '@/lib/notify';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { qrCodeAPI } from '@/lib/api';
-import DashboardLayout from '../components/layout/DashboardLayout';
+import CreateHeader from '../components/create/CreateHeader';
+import PreviewCanvas from '../components/create/PreviewCanvas';
+import PreviewSheet from '../components/create/PreviewSheet';
+import StepFooter from '../components/create/StepFooter';
+import MobileCreateBar from '../components/create/MobileCreateBar';
+import { CONTENT_STEP, CREATE_STEPS, CreateStepKey } from '../components/create/createSteps';
 import TemplateSelector from '../components/qr/TemplateSelector';
 import TemplateEditorModal from '../components/qr/TemplateEditorModal';
 import QRTypeSelector from '../components/qr/QRTypeSelector';
@@ -14,7 +18,6 @@ import QRCodePreview from '../components/qr/QRCodePreview';
 import AdvancedSettings from '../components/qr/AdvancedSettings';
 import { useQRCodes } from '../hooks/useQRCodes';
 import { useStyleHistory } from '../hooks/useStyleHistory';
-import { useIsMobile } from '../hooks/use-mobile';
 import {
   QRTemplate,
   QRStyling,
@@ -22,28 +25,9 @@ import {
   defaultStyling,
 } from '../types/qrcode';
 
-// Mobile-optimized components
-import {
-  MobileStepNavigation,
-  MobileQRPreviewSheet,
-  MobileActionBar,
-  MobileTemplateGrid,
-  MobileQRTypeSelector,
-} from '../components/mobile/qr';
-
-const { Text } = Typography;
-
-const stepKeys = ['template', 'type', 'content', 'design', 'finish', 'advanced'] as const;
-type StepKey = typeof stepKeys[number];
-
-const steps = [
-  { key: 'template', title: 'Template', description: 'Choose design' },
-  { key: 'type', title: 'Type', description: 'QR type' },
-  { key: 'content', title: 'Content', description: 'Enter data' },
-  { key: 'design', title: 'Design', description: 'Customize' },
-  { key: 'finish', title: 'Finish', description: 'Fine-tune' },
-  { key: 'advanced', title: 'Advanced', description: 'Protection & limits' },
-];
+const stepKeys = CREATE_STEPS.map((step) => step.key);
+type StepKey = CreateStepKey;
+const LAST_STEP = CREATE_STEPS.length - 1;
 
 const CreateQR: React.FC = () => {
   const navigate = useNavigate();
@@ -51,7 +35,6 @@ const CreateQR: React.FC = () => {
   const { saveQRCode, updateQRCode, getQRCode } = useQRCodes();
   const previewRef = useRef<HTMLDivElement>(null);
   const { pushStyle, undo, canUndo } = useStyleHistory();
-  const isMobile = useIsMobile();
 
   const { id } = useParams<{ id?: string }>();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -83,13 +66,18 @@ const CreateQR: React.FC = () => {
     setSearchParams(newParams, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  // Navigate to step by clicking on stepper
+  const canSave = Boolean(name.trim() && content.trim());
+
+  const canJump = useCallback(
+    (stepIndex: number) => stepIndex <= currentStep || stepIndex <= CONTENT_STEP || canSave,
+    [currentStep, canSave]
+  );
+
   const goToStep = useCallback((stepIndex: number) => {
-    // Only allow navigation to completed steps or current step
-    if (stepIndex <= currentStep) {
+    if (canJump(stepIndex)) {
       setCurrentStep(stepIndex);
     }
-  }, [currentStep, setCurrentStep]);
+  }, [canJump, setCurrentStep]);
 
   // Wrap setStyling to track history
   const handleStyleChange = useCallback((newStyling: QRStyling) => {
@@ -155,8 +143,7 @@ const CreateQR: React.FC = () => {
   }, [id, getQRCode]);
 
   const handleNext = useCallback(() => {
-    // Validate content step (step 2)
-    if (currentStep === 2) {
+    if (currentStep === CONTENT_STEP) {
       if (!name.trim()) {
         message.error('Please enter a QR code title');
         return;
@@ -167,7 +154,7 @@ const CreateQR: React.FC = () => {
       }
     }
     
-    if (currentStep < steps.length - 1) {
+    if (currentStep < LAST_STEP) {
       setCurrentStep(currentStep + 1);
     }
   }, [currentStep, name, content, setCurrentStep]);
@@ -219,18 +206,8 @@ const CreateQR: React.FC = () => {
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return isMobile ? (
-          <MobileTemplateGrid selectedTemplate={template} onSelect={setTemplate} />
-        ) : (
-          <TemplateSelector selectedTemplate={template} onSelect={setTemplate} />
-        );
+        return <QRTypeSelector selectedType={type} onSelect={setType} />;
       case 1:
-        return isMobile ? (
-          <MobileQRTypeSelector selectedType={type} onSelect={setType} />
-        ) : (
-          <QRTypeSelector selectedType={type} onSelect={setType} />
-        );
-      case 2:
         return (
           <ContentEditor
             type={type}
@@ -240,10 +217,12 @@ const CreateQR: React.FC = () => {
             onContentChange={setContent}
           />
         );
-      case 3:
+      case 2:
         return <QRDesignTemplates styling={styling} onStyleChange={handleStyleChange} />;
-      case 4:
+      case 3:
         return <QRStyleEditor styling={styling} onStyleChange={handleStyleChange} />;
+      case 4:
+        return <TemplateSelector selectedTemplate={template} onSelect={setTemplate} />;
       case 5:
         return (
           <AdvancedSettings
@@ -260,192 +239,88 @@ const CreateQR: React.FC = () => {
     }
   };
 
+  const step = CREATE_STEPS[currentStep];
+  const editing = Boolean(editingId);
+
   return (
-    <DashboardLayout>
-      <div className="animate-fade-in pb-20 lg:pb-0">
-        {/* Mobile Step Navigation */}
-        {isMobile && (
-          <MobileStepNavigation
-            steps={steps}
-            currentStep={currentStep}
-            onStepClick={goToStep}
-          />
-        )}
+    <>
+      <div className="pb-24 lg:pb-0">
+        <CreateHeader
+          name={name}
+          editing={editing}
+          current={currentStep}
+          canJump={canJump}
+          onJump={goToStep}
+          canUndo={canUndo}
+          onUndo={handleUndo}
+          canSave={canSave}
+          saving={saving}
+          onSave={handleSave}
+        />
 
-        {/* Desktop Steps - Matching Reference Design */}
-        <Card className="mb-4 md:mb-6 hidden lg:block bg-card border-border">
-          <div className="flex items-center">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.key}>
-                {/* Step Item */}
-                <div 
-                  className={`flex items-center gap-3 cursor-pointer transition-opacity ${
-                    index <= currentStep ? 'opacity-100' : 'opacity-50'
-                  }`}
-                  onClick={() => goToStep(index)}
-                >
-                  {/* Step Icon */}
-                  {index < currentStep ? (
-                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <Check size={14} className="text-primary-foreground" />
-                    </div>
-                  ) : (
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      index === currentStep 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      <span className="text-xs font-semibold">{index + 1}</span>
-                    </div>
-                  )}
-                  
-                  {/* Step Text */}
-                  <div className="flex flex-col">
-                    <span className={`text-sm font-medium leading-tight ${
-                      index <= currentStep ? 'text-foreground' : 'text-muted-foreground'
-                    }`}>
-                      {step.title}
-                    </span>
-                    <span className="text-xs text-muted-foreground leading-tight hidden xl:block">
-                      {step.description}
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_440px]">
+          <section className="flex min-w-0 flex-col lg:min-h-[calc(100dvh-184px)] xl:min-h-[calc(100dvh-140px)]">
+            <div key={step.key} className="create-step-enter">
+              <div className="mb-6">
+                <div className="text-xs font-semibold uppercase tracking-[0.1em] text-primary">
+                  Step {currentStep + 1} of {CREATE_STEPS.length}
                 </div>
-
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 rounded-full transition-colors ${
-                    index < currentStep ? 'bg-primary' : 'bg-muted'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </Card>
-
-        {/* Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Card className={`${isMobile ? 'min-h-[350px] !p-3' : 'min-h-[500px]'}`}>
-              {renderStepContent()}
-            </Card>
-          </div>
-
-          {/* Desktop Preview */}
-          <div className="hidden lg:block lg:col-span-2">
-            <div className="sticky top-6">
-              <Card 
-                title="Live Preview" 
-                extra={
-                  template ? (
-                    <Button
-                      type="primary"
-                      size="small"
-                      icon={<Settings2 size={14} />}
-                      onClick={() => setShowTemplateEditor(true)}
-                    >
-                      Edit
-                    </Button>
-                  ) : null
-                }
-              >
-                <div className="flex flex-col items-center">
-                  <QRCodePreview
-                    ref={previewRef}
-                    content={content}
-                    template={template}
-                    styling={styling}
-                    editable={!!template}
-                    onTemplateChange={setTemplate}
-                    qrId={editingId || undefined}
-                    qrType={type}
-                  />
-                  {template ? (
-                    <Text type="secondary" className="text-xs mt-4 text-center">
-                      Click text to edit • Use "Edit" for more options
-                    </Text>
-                  ) : (
-                    <Text type="secondary" className="text-xs mt-4 text-center">
-                      Plain QR code • Customize in Design step
-                    </Text>
-                  )}
-                </div>
-              </Card>
-
-              {/* Desktop Navigation */}
-              <div className="mt-4 flex justify-between items-center gap-2">
-                <Button
-                  size="middle"
-                  onClick={handlePrev}
-                  disabled={currentStep === 0}
-                >
-                  Previous
-                </Button>
-
-                <Button
-                  size="middle"
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  icon={<Undo2 size={16} />}
-                >
-                  Undo
-                </Button>
-
-                {currentStep === steps.length - 1 ? (
-                  <Button
-                    type="primary"
-                    size="middle"
-                    onClick={handleSave}
-                    loading={saving}
-                    disabled={saving}
-                  >
-                    Save QR Code
-                  </Button>
-                ) : (
-                  <Button
-                    type="primary"
-                    size="middle"
-                    onClick={handleNext}
-                  >
-                    Next
-                  </Button>
-                )}
+                <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.03em] text-foreground sm:text-[32px]">{step.title}</h1>
+                <p className="mt-1.5 max-w-xl text-[15px] text-muted-foreground">{step.lede}</p>
               </div>
+
+              <div className="create-glass rounded-[28px] p-4 sm:p-6">{renderStepContent()}</div>
             </div>
-          </div>
+
+            <StepFooter
+              current={currentStep}
+              editing={editing}
+              canSave={canSave}
+              saving={saving}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onSave={handleSave}
+            />
+          </section>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 xl:top-[88px]">
+              <PreviewCanvas
+                previewRef={previewRef}
+                content={content}
+                template={template}
+                styling={styling}
+                type={type}
+                qrId={editingId || undefined}
+                onTemplateChange={setTemplate}
+                onEditCard={() => setShowTemplateEditor(true)}
+              />
+            </div>
+          </aside>
         </div>
 
-        {/* Mobile Action Bar */}
-        {isMobile && (
-          <MobileActionBar
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onUndo={handleUndo}
-            onSave={handleSave}
-            onPreview={() => setShowPreviewDrawer(true)}
-            canUndo={canUndo}
-            saving={saving}
-          />
-        )}
+        <MobileCreateBar
+          isFirst={currentStep === 0}
+          isLast={currentStep === LAST_STEP}
+          saving={saving}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onSave={handleSave}
+          onPreview={() => setShowPreviewDrawer(true)}
+        />
 
-        {/* Mobile Preview Sheet */}
-        <MobileQRPreviewSheet
-          open={showPreviewDrawer}
+        <PreviewSheet
+          opened={showPreviewDrawer}
           onClose={() => setShowPreviewDrawer(false)}
           content={content}
           template={template}
           styling={styling}
-          onTemplateChange={setTemplate}
-          onEditTemplate={() => setShowTemplateEditor(true)}
+          type={type}
           qrId={editingId || undefined}
-          qrType={type}
-          previewRef={previewRef}
+          onTemplateChange={setTemplate}
+          onEditCard={() => setShowTemplateEditor(true)}
         />
 
-        {/* Template Editor Modal */}
         <TemplateEditorModal
           open={showTemplateEditor}
           onClose={() => setShowTemplateEditor(false)}
@@ -457,7 +332,7 @@ const CreateQR: React.FC = () => {
           qrType={type}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -1,163 +1,102 @@
 import React, { useMemo } from 'react';
-import { Card, Typography, Tooltip } from 'antd';
+import { Tooltip } from '@mantine/core';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const { Text } = Typography;
+import ChartPanel from './chart/ChartPanel';
 
 interface HeatmapByTimeProps {
   scans: Array<{ createdAt: string }>;
   mode: 'real' | 'demo';
+  className?: string;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const LEVELS = ['bg-foreground/[0.05]', 'bg-primary/20', 'bg-primary/40', 'bg-primary/60', 'bg-primary/80', 'bg-primary'];
 
-const HeatmapByTime: React.FC<HeatmapByTimeProps> = ({ scans, mode }) => {
-  const heatmapData = useMemo(() => {
-    // Initialize grid: 7 days x 24 hours
-    const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+const formatHour = (hour: number) => `${hour % 12 === 0 ? 12 : hour % 12}${hour < 12 ? 'am' : 'pm'}`;
 
-    if (mode === 'demo') {
-      // Generate demo data with realistic patterns
-      for (let day = 0; day < 7; day++) {
-        for (let hour = 0; hour < 24; hour++) {
-          // More scans during weekdays and business hours
-          const isWeekday = day >= 1 && day <= 5;
-          const isBusinessHour = hour >= 9 && hour <= 18;
-          const isPeakHour = hour >= 10 && hour <= 14;
-          
-          let baseValue = Math.random() * 20;
-          if (isWeekday) baseValue += 15;
-          if (isBusinessHour) baseValue += 25;
-          if (isPeakHour) baseValue += 20;
-          
-          grid[day][hour] = Math.floor(baseValue);
-        }
-      }
-    } else {
-      // Process real scan data
-      scans.forEach((scan) => {
-        const date = new Date(scan.createdAt);
-        const day = date.getDay();
-        const hour = date.getHours();
-        grid[day][hour]++;
-      });
-    }
+const demoGrid = () =>
+  DAYS.map((_, day) =>
+    HOURS.map((hour) => {
+      let value = Math.random() * 20;
+      if (day >= 1 && day <= 5) value += 15;
+      if (hour >= 9 && hour <= 18) value += 25;
+      if (hour >= 10 && hour <= 14) value += 20;
+      return Math.floor(value);
+    })
+  );
 
-    return grid;
+const HeatmapByTime: React.FC<HeatmapByTimeProps> = ({ scans, mode, className }) => {
+  const grid = useMemo(() => {
+    if (mode === 'demo') return demoGrid();
+    const next: number[][] = DAYS.map(() => Array(24).fill(0));
+    scans.forEach((scan) => {
+      const date = new Date(scan.createdAt);
+      next[date.getDay()][date.getHours()]++;
+    });
+    return next;
   }, [scans, mode]);
 
-  const maxValue = useMemo(() => {
-    return Math.max(...heatmapData.flat(), 1);
-  }, [heatmapData]);
-
-  const getIntensity = (value: number) => {
-    if (value === 0) return 0;
-    return Math.ceil((value / maxValue) * 5);
-  };
-
-  const getColor = (intensity: number) => {
-    const colors = [
-      'bg-muted/30',
-      'bg-primary/20',
-      'bg-primary/40',
-      'bg-primary/60',
-      'bg-primary/80',
-      'bg-primary',
-    ];
-    return colors[intensity] || colors[0];
-  };
-
-  const totalScans = useMemo(() => {
-    return heatmapData.flat().reduce((sum, val) => sum + val, 0);
-  }, [heatmapData]);
-
-  const peakTime = useMemo(() => {
-    let maxVal = 0;
-    let peakDay = 0;
-    let peakHour = 0;
-    
-    heatmapData.forEach((dayData, day) => {
-      dayData.forEach((value, hour) => {
-        if (value > maxVal) {
-          maxVal = value;
-          peakDay = day;
-          peakHour = hour;
-        }
-      });
-    });
-
-    return { day: DAYS[peakDay], hour: peakHour, value: maxVal };
-  }, [heatmapData]);
+  const max = Math.max(...grid.flat(), 1);
+  const total = grid.flat().reduce((sum, v) => sum + v, 0);
+  const peak = grid.reduce(
+    (best, row, day) => row.reduce((b, value, hour) => (value > b.value ? { day, hour, value } : b), best),
+    { day: 0, hour: 0, value: 0 }
+  );
+  const level = (value: number) => (value === 0 ? 0 : Math.ceil((value / max) * 5));
 
   return (
-    <Card title="Activity Heatmap by Time" className="h-full">
-      <div className="space-y-4">
-        {/* Stats row */}
-        <div className="flex gap-4 text-sm">
-          <div>
-            <Text type="secondary">Total Scans: </Text>
-            <Text strong>{totalScans}</Text>
-          </div>
-          <div>
-            <Text type="secondary">Peak Time: </Text>
-            <Text strong>{peakTime.day} {peakTime.hour}:00</Text>
-          </div>
-        </div>
-
-        {/* Heatmap grid */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
-            {/* Hour labels */}
-            <div className="flex mb-1">
-              <div className="w-10" />
-              {HOURS.filter((h) => h % 3 === 0).map((hour) => (
-                <div key={hour} className="flex-1 text-center text-[10px] text-muted-foreground">
-                  {hour}:00
-                </div>
-              ))}
+    <ChartPanel
+      title="When people scan"
+      description="Scans by hour and day, in your local time"
+      icon={Clock}
+      className={className}
+      empty={total === 0}
+      extra={
+        peak.value > 0 ? (
+          <div className="text-right">
+            <div className="text-[11px] text-muted-foreground">Peak</div>
+            <div className="text-[13px] font-semibold text-foreground">
+              {DAYS[peak.day]} {formatHour(peak.hour)}
             </div>
-
-            {/* Grid rows */}
-            {DAYS.map((day, dayIndex) => (
-              <div key={day} className="flex items-center gap-0.5 mb-0.5">
-                <div className="w-10 text-xs text-muted-foreground font-medium">{day}</div>
-                <div className="flex-1 flex gap-0.5">
-                  {HOURS.map((hour) => {
-                    const value = heatmapData[dayIndex][hour];
-                    const intensity = getIntensity(value);
-                    return (
-                      <Tooltip
-                        key={hour}
-                        title={`${day} ${hour}:00 - ${value} scans`}
-                      >
-                        <div
-                          className={cn(
-                            'flex-1 h-6 rounded-sm transition-colors cursor-pointer hover:ring-2 hover:ring-primary/50',
-                            getColor(intensity)
-                          )}
-                        />
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </div>
+          </div>
+        ) : null
+      }
+    >
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px]">
+          <div className="mb-1 grid grid-cols-[36px_repeat(24,minmax(0,1fr))] gap-[3px]">
+            <span />
+            {HOURS.map((hour) => (
+              <span key={hour} className="text-center text-[10px] text-muted-foreground">
+                {hour % 3 === 0 ? formatHour(hour) : ''}
+              </span>
             ))}
-
-            {/* Legend */}
-            <div className="flex items-center justify-end gap-2 mt-4">
-              <Text type="secondary" className="text-xs">Less</Text>
-              <div className="flex gap-0.5">
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className={cn('w-4 h-4 rounded-sm', getColor(i))} />
-                ))}
-              </div>
-              <Text type="secondary" className="text-xs">More</Text>
+          </div>
+          {DAYS.map((day, dayIndex) => (
+            <div key={day} className="mb-[3px] grid grid-cols-[36px_repeat(24,minmax(0,1fr))] gap-[3px]">
+              <span className="self-center text-[11px] font-medium text-muted-foreground">{day}</span>
+              {HOURS.map((hour) => {
+                const value = grid[dayIndex][hour];
+                return (
+                  <Tooltip key={hour} label={`${day} ${formatHour(hour)} · ${value} ${value === 1 ? 'scan' : 'scans'}`} openDelay={0}>
+                    <span className={cn('h-6 rounded-[4px] transition-shadow hover:ring-2 hover:ring-primary/40', LEVELS[level(value)])} />
+                  </Tooltip>
+                );
+              })}
             </div>
+          ))}
+          <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-muted-foreground">
+            Fewer
+            {LEVELS.map((cls) => (
+              <span key={cls} className={cn('h-3 w-3 rounded-[3px]', cls)} />
+            ))}
+            More
           </div>
         </div>
       </div>
-    </Card>
+    </ChartPanel>
   );
 };
 

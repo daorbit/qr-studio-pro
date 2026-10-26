@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { scansAPI } from '@/lib/api';
 import { AdvancedAnalytics } from '@/types/analytics';
 

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Typography, Card, Table, Tag, Button, Statistic, Row, Col, Spin, Segmented, message } from 'antd';
 import { ArrowLeft, MapPin, Eye, TrendingUp, Download } from 'lucide-react';
 import { AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { useQRCodes } from '../hooks/useQRCodes';
 import { useQRAnalytics } from '@/hooks/useQRAnalytics';
 import { useDateFormatter } from '@/hooks/useDateFormatter';
@@ -198,16 +197,16 @@ const QRAnalytics: React.FC = () => {
 
   if (loading && mode === 'real') {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Spin size="large" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="animate-fade-in space-y-4 sm:space-y-6 pb-6">
         {/* Header - Mobile Optimized */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -371,7 +370,7 @@ const QRAnalytics: React.FC = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

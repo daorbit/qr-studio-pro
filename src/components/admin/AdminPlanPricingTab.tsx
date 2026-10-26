@@ -1,23 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, message, Spin, Typography } from 'antd';
-import { DollarSign } from 'lucide-react';
+import { Button, Loader, NumberInput, Title } from '@mantine/core';
+import { message } from '@/lib/notify';
 import { adminAPI } from '@/lib/api';
+import SectionCard from '@/components/common/SectionCard';
 
-const { Title } = Typography;
+type PriceField = 'basicMonthly' | 'basicYearly' | 'proMonthly' | 'proYearly';
+type PriceValues = Record<PriceField, number | string>;
+type PriceErrors = Partial<Record<PriceField, string>>;
 
-interface PlanPrices {
-  basic: {
-    monthlyPrice: number;
-    yearlyPrice: number;
-  };
-  pro: {
-    monthlyPrice: number;
-    yearlyPrice: number;
-  };
-}
+const EMPTY_PRICES: PriceValues = { basicMonthly: '', basicYearly: '', proMonthly: '', proYearly: '' };
+
+const PLAN_SECTIONS: { title: string; fields: { name: PriceField; label: string; placeholder: string }[] }[] = [
+  {
+    title: 'Basic Plan',
+    fields: [
+      { name: 'basicMonthly', label: 'Monthly Price (₹)', placeholder: '149' },
+      { name: 'basicYearly', label: 'Yearly Price (₹)', placeholder: '1700' },
+    ],
+  },
+  {
+    title: 'Pro Plan',
+    fields: [
+      { name: 'proMonthly', label: 'Monthly Price (₹)', placeholder: '299' },
+      { name: 'proYearly', label: 'Yearly Price (₹)', placeholder: '3500' },
+    ],
+  },
+];
+
+const validatePrices = (values: PriceValues): PriceErrors => {
+  const errors: PriceErrors = {};
+  (Object.keys(values) as PriceField[]).forEach((field) => {
+    if (values[field] === '') errors[field] = 'Please enter a price';
+    else if (!(Number(values[field]) > 0)) errors[field] = 'Price must be a positive number';
+  });
+  return errors;
+};
 
 const AdminPlanPricingTab: React.FC = () => {
-  const [form] = Form.useForm();
+  const [values, setValues] = useState<PriceValues>(EMPTY_PRICES);
+  const [errors, setErrors] = useState<PriceErrors>({});
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
 
@@ -31,7 +52,7 @@ const AdminPlanPricingTab: React.FC = () => {
       const response = await adminAPI.getPlanPrices();
       if (response.success) {
         const { basic, pro } = response.prices;
-        form.setFieldsValue({
+        setValues({
           basicMonthly: basic.monthlyPrice,
           basicYearly: basic.yearlyPrice,
           proMonthly: pro.monthlyPrice,
@@ -45,24 +66,34 @@ const AdminPlanPricingTab: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const setField = (field: PriceField, value: number | string) => {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nextErrors = validatePrices(values);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     try {
       setLoading(true);
       const payload = {
         basic: {
-          monthlyPrice: parseInt(values.basicMonthly),
-          yearlyPrice: parseInt(values.basicYearly),
+          monthlyPrice: Number(values.basicMonthly),
+          yearlyPrice: Number(values.basicYearly),
         },
         pro: {
-          monthlyPrice: parseInt(values.proMonthly),
-          yearlyPrice: parseInt(values.proYearly),
+          monthlyPrice: Number(values.proMonthly),
+          yearlyPrice: Number(values.proYearly),
         },
       };
 
       const response = await adminAPI.updatePlanPrices(payload);
       if (response.success) {
         message.success('Plan prices updated successfully');
-        fetchCurrentPrices(); // Refresh the form with new values
+        fetchCurrentPrices();
       } else {
         message.error('Failed to update prices');
       }
@@ -76,122 +107,41 @@ const AdminPlanPricingTab: React.FC = () => {
   if (fetchLoading) {
     return (
       <div className="flex justify-center items-center py-16">
-        <Spin size="large" />
+        <Loader />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <DollarSign className="w-6 h-6 text-gray-600" />
-        <Title level={4} className="!mb-0">Plan Pricing Management</Title>
-      </div>
-
-      <Card>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          className="max-w-2xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Plan */}
-            <div className="space-y-4">
-              <Title level={5}>Basic Plan</Title>
-              <Form.Item
-                label="Monthly Price (₹)"
-                name="basicMonthly"
-                rules={[
-                  { required: true, message: 'Please enter monthly price' },
-                  {
-                    validator: (_, value) => {
-                      const num = parseFloat(value);
-                      if (isNaN(num) || num <= 0) {
-                        return Promise.reject(new Error('Price must be a positive number'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
-                <Input type="number" placeholder="149" min="1" />
-              </Form.Item>
-              <Form.Item
-                label="Yearly Price (₹)"
-                name="basicYearly"
-                rules={[
-                  { required: true, message: 'Please enter yearly price' },
-                  {
-                    validator: (_, value) => {
-                      const num = parseFloat(value);
-                      if (isNaN(num) || num <= 0) {
-                        return Promise.reject(new Error('Price must be a positive number'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
-                <Input type="number" placeholder="1700" min="1" />
-              </Form.Item>
+    <SectionCard title="Plan Pricing Management">
+      <form onSubmit={handleSubmit} className="max-w-2xl" noValidate>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {PLAN_SECTIONS.map((section) => (
+            <div key={section.title} className="space-y-4">
+              <Title order={4}>{section.title}</Title>
+              {section.fields.map((field) => (
+                <NumberInput
+                  key={field.name}
+                  label={field.label}
+                  placeholder={field.placeholder}
+                  min={1}
+                  allowDecimal={false}
+                  allowNegative={false}
+                  hideControls
+                  value={values[field.name]}
+                  onChange={(value) => setField(field.name, value)}
+                  error={errors[field.name]}
+                />
+              ))}
             </div>
+          ))}
+        </div>
 
-            {/* Pro Plan */}
-            <div className="space-y-4">
-              <Title level={5}>Pro Plan</Title>
-              <Form.Item
-                label="Monthly Price (₹)"
-                name="proMonthly"
-                rules={[
-                  { required: true, message: 'Please enter monthly price' },
-                  {
-                    validator: (_, value) => {
-                      const num = parseFloat(value);
-                      if (isNaN(num) || num <= 0) {
-                        return Promise.reject(new Error('Price must be a positive number'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
-                <Input type="number" placeholder="299" min="1" />
-              </Form.Item>
-              <Form.Item
-                label="Yearly Price (₹)"
-                name="proYearly"
-                rules={[
-                  { required: true, message: 'Please enter yearly price' },
-                  {
-                    validator: (_, value) => {
-                      const num = parseFloat(value);
-                      if (isNaN(num) || num <= 0) {
-                        return Promise.reject(new Error('Price must be a positive number'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
-                <Input type="number" placeholder="3500" min="1" />
-              </Form.Item>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              size="large"
-            >
-              Update Prices
-            </Button>
-          </div>
-        </Form>
-      </Card>
-    </div>
+        <Button type="submit" loading={loading} size="md" className="mt-6">
+          Update Prices
+        </Button>
+      </form>
+    </SectionCard>
   );
 };
 

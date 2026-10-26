@@ -11,7 +11,6 @@ import {
   selectAuditLogsSearch,
 } from '@/store/slices/adminSlice';
 import { selectIsAuthenticated, selectUser } from '@/store/slices/authSlice';
-import type { TablePaginationConfig } from 'antd/es/table';
 
 /**
  * Hook for admin audit logs data
@@ -41,11 +40,9 @@ export const useAuditLogs = () => {
   }, [dispatch]);
 
   // Handle table pagination change
-  const handleTableChange = useCallback((pagination: TablePaginationConfig, filters: any, sorter: any, extra: any) => {
-    const newPage = pagination.current ?? 1;
-    const newLimit = pagination.pageSize ?? limit;
+  const handleTableChange = useCallback((newPage: number, newLimit: number) => {
     dispatch(fetchAuditLogs({ page: newPage, limit: newLimit, search }));
-  }, [dispatch, search, limit]);
+  }, [dispatch, search]);
 
   // Search
   const handleSearch = useCallback((searchValue: string) => {

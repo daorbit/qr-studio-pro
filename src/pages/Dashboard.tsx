@@ -1,16 +1,13 @@
 import React from "react";
-import {
-  Typography,
-  Button,
-  Pagination,
-  message,
-} from "antd";
+import { Button, Pagination } from "@mantine/core";
 import confetti from 'canvas-confetti';
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import DashboardLayout from "../components/layout/DashboardLayout";
-import EmptyQRState from "../components/qr/EmptyQRState";
+import { Link, useNavigate } from "react-router-dom";
+import { message } from "@/lib/notify";
+import PageHeader from "../components/layout/PageHeader";
+import DashboardEmptyState from "../components/dashboard/DashboardEmptyState";
 import StatsCards from "../components/dashboard/StatsCards";
+import { useWorkspace } from "../hooks/useWorkspace";
 import SearchBar from "../components/dashboard/SearchBar";
 import QRCodesList from "../components/dashboard/QRCodesList";
 import NoSearchResults from "../components/dashboard/NoSearchResults";
@@ -19,10 +16,9 @@ import { useQRCodes } from "../hooks/useQRCodes";
 import { useAppSelector } from "../store";
 import { selectStatsLoading } from "../store/slices/statsSlice";
 
-const { Title, Text } = Typography;
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { workspace, canEdit } = useWorkspace();
   const {
     qrCodes,
     loading,
@@ -84,7 +80,7 @@ const Dashboard: React.FC = () => {
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#a855f7', '#8b5cf6', '#7c3aed']
+      colors: ['#f97316', '#fb923c', '#fdba74']
     });
     message.success('QR Code status updated!');
   };
@@ -105,47 +101,34 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Subscription Limit Alert - Fixed at top */}
       <SubscriptionLimitAlert currentQRCount={statsTotal || 0} />
       
-      <div className="animate-fade-in space-y-4 md:space-y-6">
-        {/* Welcome Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <Title level={3} className="!mb-0 !text-xl md:!text-2xl">
-              Welcome back! 👋
-            </Title>
-            <Text type="secondary" className="text-sm">
-              Manage your QR codes
-            </Text>
-          </div>
-          <Button
-            type="primary"
-            size="middle"
-            icon={<Plus size={16} />}
-            onClick={() => navigate("/create")}
-            className="w-full sm:w-auto"
-          >
-            Create New
-          </Button>
-        </div>
+      <div className="animate-fade-in space-y-6 md:space-y-8">
+        <PageHeader
+          title="QR codes"
+          description={workspace ? `Everything in ${workspace.name}` : undefined}
+          actions={
+            canEdit && (
+              <Button component={Link} to="/create" leftSection={<Plus size={16} />}>
+                New QR code
+              </Button>
+            )
+          }
+        />
 
-        {/* Stats Cards - Independent loading state */}
         <StatsCards loading={statsLoading} stats={stats} />
 
-        {/* Content */}
         {hasNoQRCodes ? (
-          <div style={{ marginTop: "150px" }}>
-            <EmptyQRState />
-          </div>
+          <DashboardEmptyState canCreate={canEdit} />
         ) : (
           <>
-            {/* QR Codes List Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Title level={4} className="!mb-0 !text-base md:!text-lg">
-                Your QR Codes
-              </Title>
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">All codes</h2>
+                <span className="text-sm tabular-nums text-muted-foreground">{Number(total) || qrCodes.length}</span>
+              </div>
               <SearchBar
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
@@ -171,17 +154,12 @@ const Dashboard: React.FC = () => {
         )}
 
         {Number(total) > Number(limit) && (
-          <div className="pt-4 flex justify-end">
-            <Pagination
-              current={Number(page)}
-              pageSize={Number(limit)}
-              total={Number(total)}
-              onChange={(p) => setPage(p)}
-            />
+          <div className="flex justify-center pt-2">
+            <Pagination value={Number(page)} total={Number(totalPages) || Math.ceil(Number(total) / Number(limit))} onChange={setPage} />
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -7,7 +7,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import confetti from 'canvas-confetti';
 import { paymentAPI } from '@/lib/paymentApi';
 import { useAuth } from '@/hooks/useAuth';

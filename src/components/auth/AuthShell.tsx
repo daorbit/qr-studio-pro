@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import AuthShowcase from './AuthShowcase';
+import { SUPPORT_MAILTO } from '@/lib/config';
 import '@/styles/auth.css';
 
 interface AuthShellProps {
@@ -37,7 +38,7 @@ const AuthShell: React.FC<AuthShellProps> = ({ children, switchLink }) => (
       <footer className="px-5 sm:px-8 pb-6 text-xs text-muted-foreground flex justify-center gap-5">
         <Link to="/terms-and-conditions" className="hover:text-foreground transition-colors">Terms</Link>
         <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</Link>
-        <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+        <a href={SUPPORT_MAILTO} className="hover:text-foreground transition-colors">Support</a>
       </footer>
     </div>
   </div>

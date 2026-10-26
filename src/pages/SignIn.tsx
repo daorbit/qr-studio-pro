@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Input, Button, message } from "antd";
+import { Button, PasswordInput, TextInput } from "@mantine/core";
+import { message } from "@/lib/notify";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,19 +59,14 @@ const SignIn: React.FC = () => {
       <AuthDivider />
 
       <form onSubmit={handleSubmit} className="space-y-4" aria-label="Sign in form" noValidate>
-        <div>
-          <label htmlFor="signin-email" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-            Email
-          </label>
-          <Input
-            id="signin-email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@company.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <TextInput
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@company.com"
+          value={email}
+          onChange={(e) => setEmail(e.currentTarget.value)}
+        />
 
         <div>
           <div className="mb-1.5 flex items-center justify-between">
@@ -81,16 +77,16 @@ const SignIn: React.FC = () => {
               Forgot password?
             </Link>
           </div>
-          <Input.Password
+          <PasswordInput
             id="signin-password"
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.currentTarget.value)}
           />
         </div>
 
-        <Button type="primary" htmlType="submit" loading={loading} block>
+        <Button type="submit" loading={loading} fullWidth>
           Sign in
         </Button>
       </form>

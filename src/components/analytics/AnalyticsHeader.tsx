@@ -1,8 +1,7 @@
 import React from 'react';
-import { Typography, Segmented, Button } from 'antd';
+import { Button, SegmentedControl } from '@mantine/core';
 import { Download } from 'lucide-react';
-
-const { Title, Text } = Typography;
+import PageHeader from '@/components/layout/PageHeader';
 
 interface AnalyticsHeaderProps {
   mode: 'real' | 'demo';
@@ -10,30 +9,24 @@ interface AnalyticsHeaderProps {
   onDownloadCSV: () => void;
 }
 
-const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
-  mode,
-  onModeChange,
-  onDownloadCSV,
-}) => {
-  return (
-    <div className="flex items-center justify-between flex-wrap gap-4">
-      <div>
-        <Title level={2} className="!mb-1">Analytics Overview</Title>
-        <Text type="secondary">Track performance across all your QR codes</Text>
-      </div>
-      <div className="flex items-center gap-3">
-        <Button icon={<Download size={16} />} onClick={onDownloadCSV}>
+const MODES = [
+  { value: 'real', label: 'Your data' },
+  { value: 'demo', label: 'Sample' },
+];
+
+const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({ mode, onModeChange, onDownloadCSV }) => (
+  <PageHeader
+    title="Analytics"
+    description="How your QR codes perform across the workspace"
+    actions={
+      <>
+        <SegmentedControl data={MODES} value={mode} onChange={(v) => onModeChange(v as 'real' | 'demo')} />
+        <Button variant="default" leftSection={<Download size={15} />} onClick={onDownloadCSV}>
           Export CSV
         </Button>
-        <Segmented
-          options={[{ label: 'Real', value: 'real' }, { label: 'Demo', value: 'demo' }]}
-          value={mode}
-          onChange={(val: string | number) => onModeChange(val as 'real' | 'demo')}
-          size="middle"
-        />
-      </div>
-    </div>
-  );
-};
+      </>
+    }
+  />
+);
 
 export default AnalyticsHeader;

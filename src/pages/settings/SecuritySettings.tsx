@@ -1,101 +1,62 @@
 import React, { useState } from "react";
-import { Typography, Card, Form, Input, Button, Switch, message, Tooltip } from "antd";
-import { Shield, Key, Smartphone, HelpCircle } from "lucide-react";
+import { Button, PasswordInput } from "@mantine/core";
+import { KeyRound } from "lucide-react";
 import { authAPI } from "@/lib/api";
+import { errorMessage, message } from "@/lib/notify";
+import SettingsCard from "@/components/common/SettingsCard";
+import PasswordStrengthIndicator from "@/components/common/PasswordStrengthIndicator";
 
-const { Title, Text } = Typography;
+const MIN_LENGTH = 8;
+const EMPTY = { currentPassword: "", newPassword: "", confirmPassword: "" };
 
 const SecuritySettings: React.FC = () => {
+  const [values, setValues] = useState(EMPTY);
+  const [errors, setErrors] = useState<Partial<typeof EMPTY>>({});
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
 
-  const handleChangePassword = async () => {
+  const set = (key: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValues((prev) => ({ ...prev, [key]: e.currentTarget.value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const validate = () => {
+    const next: Partial<typeof EMPTY> = {};
+    if (!values.currentPassword) next.currentPassword = "Enter your current password";
+    if (values.newPassword.length < MIN_LENGTH) next.newPassword = `Use at least ${MIN_LENGTH} characters`;
+    if (values.confirmPassword !== values.newPassword) next.confirmPassword = "Passwords don't match";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const values = await form.validateFields();
-      await authAPI.changePassword({
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
-      });
+      await authAPI.changePassword({ currentPassword: values.currentPassword, newPassword: values.newPassword });
       message.success("Password changed");
-      form.resetFields();
-    } catch (error: any) {
-      message.error(
-        error?.response?.data?.message || "Failed to change password"
-      );
+      setValues(EMPTY);
+    } catch (error) {
+      message.error(errorMessage(error, "Failed to change password"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Change Password */}
-      <Card className="shadow-sm">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <Title level={4} className="mb-0 flex items-center gap-2 text-base sm:text-lg">
-            <Key size={window.innerWidth < 640 ? 16 : 18} />
-            Change Password
-          <Tooltip 
-            title="Update your account password. Use a strong password with at least 8 characters including letters, numbers, and symbols for better security."
-            color="white"
-            overlayInnerStyle={{ color: '#333' }}
-          >
-            <HelpCircle size={14} className="text-muted-foreground hover:text-foreground transition-colors cursor-help" />
-            </Tooltip>
-          </Title>
+    <SettingsCard icon={KeyRound} title="Password" description="Use at least 8 characters with a mix of letters, numbers and symbols.">
+      <form onSubmit={submit} className="max-w-md space-y-4" noValidate>
+        <PasswordInput label="Current password" autoComplete="current-password" value={values.currentPassword} onChange={set("currentPassword")} error={errors.currentPassword} />
+        <div>
+          <PasswordInput label="New password" autoComplete="new-password" value={values.newPassword} onChange={set("newPassword")} error={errors.newPassword} />
+          {values.newPassword && <PasswordStrengthIndicator password={values.newPassword} />}
         </div>
-        <Form form={form} layout="vertical" className="max-w-md">
-          <Form.Item
-            name="currentPassword"
-            label="Current Password"
-            rules={[
-              { required: true, message: "Please enter your current password" },
-            ]}
-          >
-            <Input.Password placeholder="Enter current password" />
-          </Form.Item>
-          <Form.Item
-            name="newPassword"
-            label="New Password"
-            rules={[
-              { required: true, message: "Please enter a new password" },
-              { min: 8, message: "Password must be at least 8 characters" },
-            ]}
-          >
-            <Input.Password placeholder="Enter new password" />
-          </Form.Item>
-          <Form.Item
-            name="confirmPassword"
-            label="Confirm New Password"
-            dependencies={["newPassword"]}
-            rules={[
-              { required: true, message: "Please confirm your new password" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("newPassword") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error("Passwords do not match"));
-                },
-              }),
-            ]}
-          >
-            <Input.Password placeholder="Confirm new password" />
-          </Form.Item>
-          <Button
-            type="primary"
-            icon={<Shield size={window.innerWidth < 640 ? 14 : 16} />}
-            onClick={handleChangePassword}
-            loading={loading}
-            size={window.innerWidth < 640 ? "small" : "middle"}
-            className="text-xs sm:text-sm"
-          >
-            {window.innerWidth < 640 ? "Update" : "Update Password"}
-          </Button>
-        </Form>
-      </Card>
-    </div>
+        <PasswordInput label="Confirm new password" autoComplete="new-password" value={values.confirmPassword} onChange={set("confirmPassword")} error={errors.confirmPassword} />
+        <Button type="submit" loading={loading}>
+          Update password
+        </Button>
+      </form>
+    </SettingsCard>
   );
 };
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { adminAPI } from '@/lib/api';
 
 // ============ Types ============

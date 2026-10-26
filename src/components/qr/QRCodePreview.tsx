@@ -1,9 +1,11 @@
 import React, { useState, forwardRef, useEffect, useRef, useMemo } from 'react';
 import QRCodeStyling from 'qr-code-styling';
-import { Input, ColorPicker, Slider, Popover } from 'antd';
-import { Pencil, Type } from 'lucide-react';
-import type { Color } from 'antd/es/color-picker';
+import { TextInput } from '@mantine/core';
+import { Pencil } from 'lucide-react';
 import { QRTemplate, QRStyling, CustomField, QRType } from '../../types/qrcode';
+import ColorField from '@/components/create/ColorField';
+import InlineEditPopover from './preview/InlineEditPopover';
+import SliderField from './preview/SliderField';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { createQRCodeOptions, createSafeStyling } from '../../lib/qrUtils';
 
@@ -154,9 +156,9 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
     }
   };
 
-  const handleColorChange = (key: 'backgroundColor' | 'textColor', color: Color) => {
+  const handleColorChange = (key: 'backgroundColor' | 'textColor', color: string) => {
     if (onTemplateChange) {
-      onTemplateChange({ ...template, [key]: color.toHexString() });
+      onTemplateChange({ ...template, [key]: color });
     }
   };
 
@@ -316,54 +318,39 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
     const isNumericField = field.type === 'date' || field.type === 'time' || /\d/.test(field.value);
     
     return (
-      <div className="w-72 space-y-3 p-1">
-        <div>
-          <label className="text-xs font-medium block mb-1">
-            {field.type === 'date' ? 'Date' : field.type === 'time' ? 'Time' : 'Text'} Content
-          </label>
-          <Input
-            value={field.value}
-            onChange={(e) => handleCustomFieldChange(field.id, { value: e.target.value })}
-            size="small"
-            placeholder={field.type === 'date' ? 'January 1, 2025' : field.type === 'time' ? '12:00 PM' : 'Enter text'}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium block mb-1">Font Size: {field.style?.fontSize || 14}px</label>
-          <Slider
-            min={8}
-            max={32}
-            value={field.style?.fontSize || 14}
-            onChange={(value) => handleCustomFieldChange(field.id, { 
-              style: { ...field.style, fontSize: value }
-            })}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium block mb-1">Text Color</label>
-          <ColorPicker
-            value={field.style?.color || template.textColor}
-            onChange={(color) => handleCustomFieldChange(field.id, {
-              style: { ...field.style, color: color.toHexString() }
-            })}
-            size="small"
-          />
-        </div>
+      <>
+        <TextInput
+          size="xs"
+          label={`${field.type === 'date' ? 'Date' : field.type === 'time' ? 'Time' : 'Text'} content`}
+          value={field.value}
+          onChange={(e) => handleCustomFieldChange(field.id, { value: e.currentTarget.value })}
+          placeholder={field.type === 'date' ? 'January 1, 2025' : field.type === 'time' ? '12:00 PM' : 'Enter text'}
+        />
+        <SliderField
+          label="Font size"
+          min={8}
+          max={32}
+          value={field.style?.fontSize || 14}
+          onChange={(value) => handleCustomFieldChange(field.id, { style: { ...field.style, fontSize: value } })}
+        />
+        <ColorField
+          size="xs"
+          label="Text color"
+          withinPortal={false}
+          value={field.style?.color || template.textColor}
+          onChange={(color) => handleCustomFieldChange(field.id, { style: { ...field.style, color } })}
+        />
         {isNumericField && (
-          <div>
-            <label className="text-xs font-medium block mb-1">Letter Spacing: {field.style?.letterSpacing || 0}px</label>
-            <Slider
-              min={-1}
-              max={5}
-              step={0.5}
-              value={field.style?.letterSpacing || 0}
-              onChange={(value) => handleCustomFieldChange(field.id, {
-                style: { ...field.style, letterSpacing: value }
-              })}
-            />
-          </div>
+          <SliderField
+            label="Letter spacing"
+            min={-1}
+            max={5}
+            step={0.5}
+            value={field.style?.letterSpacing || 0}
+            onChange={(value) => handleCustomFieldChange(field.id, { style: { ...field.style, letterSpacing: value } })}
+          />
         )}
-      </div>
+      </>
     );
   };
 
@@ -394,20 +381,14 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
     // Render editable field
     if (editable && !compact) {
       return (
-        <Popover 
+        <InlineEditPopover
           key={field.id}
-          content={createFieldEditorContent(field)}
-          title={
-            <span className="flex items-center gap-2">
-              <Type size={14} /> 
-              Edit {field.type === 'date' ? 'Date' : field.type === 'time' ? 'Time' : 'Text'}
-            </span>
-          }
-          trigger="click"
-          open={editingFieldId === field.id}
-          onOpenChange={(open) => setEditingFieldId(open ? field.id : null)}
-        >
-          <div 
+          title={`Edit ${field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : 'text'}`}
+          width={288}
+          opened={editingFieldId === field.id}
+          onChange={(open) => setEditingFieldId(open ? field.id : null)}
+          target={
+          <div
             className="group flex items-center gap-1 cursor-pointer hover:opacity-80 relative z-10"
             style={{ justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start' }}
           >
@@ -421,7 +402,10 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
               </div>
             )}
           </div>
-        </Popover>
+          }
+        >
+          {createFieldEditorContent(field)}
+        </InlineEditPopover>
       );
     }
 
@@ -434,55 +418,30 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
   };
 
   const titleEditorContent = (
-    <div className="w-64 space-y-3 p-1">
-      <div>
-        <label className="text-xs font-medium block mb-1">Title Text</label>
-        <Input
-          value={template.title}
-          onChange={(e) => handleTitleChange(e.target.value)}
-          size="small"
-        />
-      </div>
-      <div>
-        <label className="text-xs font-medium block mb-1">Font Size: {template.titleFontSize || 24}px</label>
-        <Slider
-          min={14}
-          max={40}
-          value={template.titleFontSize || 24}
-          onChange={(value) => onTemplateChange?.({ ...template, titleFontSize: value })}
-        />
-      </div>
-      <div>
-        <label className="text-xs font-medium block mb-1">Text Color</label>
-        <ColorPicker
-          value={template.textColor}
-          onChange={(color) => handleColorChange('textColor', color)}
-          size="small"
-        />
-      </div>
-    </div>
+    <>
+      <TextInput size="xs" label="Title" value={template.title} onChange={(e) => handleTitleChange(e.currentTarget.value)} />
+      <SliderField
+        label="Font size"
+        min={14}
+        max={40}
+        value={template.titleFontSize || 24}
+        onChange={(value) => onTemplateChange?.({ ...template, titleFontSize: value })}
+      />
+      <ColorField size="xs" label="Text color" withinPortal={false} value={template.textColor} onChange={(color) => handleColorChange('textColor', color)} />
+    </>
   );
 
   const subtitleEditorContent = (
-    <div className="w-64 space-y-3 p-1">
-      <div>
-        <label className="text-xs font-medium block mb-1">Subtitle Text</label>
-        <Input
-          value={template.subtitle}
-          onChange={(e) => handleSubtitleChange(e.target.value)}
-          size="small"
-        />
-      </div>
-      <div>
-        <label className="text-xs font-medium block mb-1">Font Size: {template.subtitleFontSize || 14}px</label>
-        <Slider
-          min={10}
-          max={24}
-          value={template.subtitleFontSize || 14}
-          onChange={(value) => onTemplateChange?.({ ...template, subtitleFontSize: value })}
-        />
-      </div>
-    </div>
+    <>
+      <TextInput size="xs" label="Subtitle" value={template.subtitle} onChange={(e) => handleSubtitleChange(e.currentTarget.value)} />
+      <SliderField
+        label="Font size"
+        min={10}
+        max={24}
+        value={template.subtitleFontSize || 14}
+        onChange={(value) => onTemplateChange?.({ ...template, subtitleFontSize: value })}
+      />
+    </>
   );
 
   const renderTextContent = () => {
@@ -500,14 +459,12 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
 
         {/* Title with inline editor */}
         {editable && !compact ? (
-          <Popover 
-            content={titleEditorContent} 
-            title={<span className="flex items-center gap-2"><Type size={14} /> Edit Title</span>}
-            trigger="click"
-            open={showTitleEditor}
-            onOpenChange={setShowTitleEditor}
-          >
-            <div 
+          <InlineEditPopover
+            title="Edit title"
+            opened={showTitleEditor}
+            onChange={setShowTitleEditor}
+            target={
+            <div
               className="group flex items-center gap-2 cursor-pointer hover:opacity-80 relative"
               style={{ justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start' }}
             >
@@ -525,7 +482,7 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 {template.title}
               </h3>
               {hovered && (
-                <div 
+                <div
                   className="absolute -right-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center opacity-70"
                   style={{ backgroundColor: template.textColor + '30' }}
                 >
@@ -533,7 +490,10 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 </div>
               )}
             </div>
-          </Popover>
+            }
+          >
+            {titleEditorContent}
+          </InlineEditPopover>
         ) : (
           <h3 
             style={{ 
@@ -555,14 +515,12 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
 
         {/* Subtitle with inline editor */}
         {editable && !compact ? (
-          <Popover 
-            content={subtitleEditorContent} 
-            title={<span className="flex items-center gap-2"><Type size={14} /> Edit Subtitle</span>}
-            trigger="click"
-            open={showSubtitleEditor}
-            onOpenChange={setShowSubtitleEditor}
-          >
-            <div 
+          <InlineEditPopover
+            title="Edit subtitle"
+            opened={showSubtitleEditor}
+            onChange={setShowSubtitleEditor}
+            target={
+            <div
               className="group flex items-center gap-1 cursor-pointer mt-1 hover:opacity-80 relative"
               style={{ justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start' }}
             >
@@ -581,7 +539,7 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 {template.subtitle}
               </p>
               {hovered && (
-                <div 
+                <div
                   className="absolute -right-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center opacity-70"
                   style={{ backgroundColor: template.textColor + '30' }}
                 >
@@ -589,7 +547,10 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 </div>
               )}
             </div>
-          </Popover>
+            }
+          >
+            {subtitleEditorContent}
+          </InlineEditPopover>
         ) : (
           <p 
             className="mt-1"
@@ -633,25 +594,11 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
       </div>
       {!compact && template.qrLabel && (
         editable ? (
-          <Popover 
-            content={
-              <div className="w-64 space-y-3 p-1">
-                <div>
-                  <label className="text-xs font-medium block mb-1">QR Label Text</label>
-                  <Input
-                    value={template.qrLabel || ''}
-                    onChange={(e) => handleQRLabelChange(e.target.value)}
-                    size="small"
-                    placeholder="Scan for details"
-                  />
-                </div>
-              </div>
-            }
-            title={<span className="flex items-center gap-2"><Type size={14} /> Edit QR Label</span>}
-            trigger="click"
-            open={showQRLabelEditor}
-            onOpenChange={setShowQRLabelEditor}
-          >
+          <InlineEditPopover
+            title="Edit QR label"
+            opened={showQRLabelEditor}
+            onChange={setShowQRLabelEditor}
+            target={
             <div className="group flex items-center gap-1 cursor-pointer hover:opacity-80 relative mt-2">
               <span 
                 className="text-xs opacity-70"
@@ -660,7 +607,7 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 {template.qrLabel}
               </span>
               {hovered && (
-                <div 
+                <div
                   className="absolute -right-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center opacity-70"
                   style={{ backgroundColor: template.textColor + '30' }}
                 >
@@ -668,7 +615,16 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
                 </div>
               )}
             </div>
-          </Popover>
+            }
+          >
+            <TextInput
+              size="xs"
+              label="Label"
+              value={template.qrLabel || ''}
+              onChange={(e) => handleQRLabelChange(e.currentTarget.value)}
+              placeholder="Scan for details"
+            />
+          </InlineEditPopover>
         ) : (
           <span 
             className="mt-2 text-xs opacity-70"
@@ -686,53 +642,15 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
     
     if (editable) {
       return (
-        <Popover 
-          content={
-            <div className="w-72 space-y-3 p-1">
-              <div>
-                <label className="text-xs font-medium block mb-1">Button Text</label>
-                <Input
-                  value={template.ctaButton.text}
-                  onChange={(e) => handleCTAButtonChange({ text: e.target.value })}
-                  size="small"
-                  placeholder="Click Me"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium block mb-1">Background Color</label>
-                <ColorPicker
-                  value={template.ctaButton.backgroundColor}
-                  onChange={(color) => handleCTAButtonChange({ backgroundColor: color.toHexString() })}
-                  size="small"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium block mb-1">Text Color</label>
-                <ColorPicker
-                  value={template.ctaButton.textColor}
-                  onChange={(color) => handleCTAButtonChange({ textColor: color.toHexString() })}
-                  size="small"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium block mb-1">Border Radius: {template.ctaButton.borderRadius || 8}px</label>
-                <Slider
-                  min={0}
-                  max={20}
-                  value={template.ctaButton.borderRadius || 8}
-                  onChange={(value) => handleCTAButtonChange({ borderRadius: value })}
-                />
-              </div>
-            </div>
-          }
-          title={<span className="flex items-center gap-2"><Type size={14} /> Edit Button</span>}
-          trigger="click"
-          open={showCTAEditor}
-          onOpenChange={setShowCTAEditor}
-        >
+        <InlineEditPopover
+          title="Edit button"
+          width={288}
+          opened={showCTAEditor}
+          onChange={setShowCTAEditor}
+          target={
           <div className="group relative z-10">
             <div
-              className="px-6 py-2 font-semibold text-sm cursor-pointer transition-transform hover:scale-105"
+              className="px-6 py-2 font-semibold text-sm cursor-pointer"
               style={{
                 backgroundColor: template.ctaButton.backgroundColor,
                 color: template.ctaButton.textColor,
@@ -750,13 +668,43 @@ const QRCodePreview = forwardRef<HTMLDivElement, QRCodePreviewProps>(({
               </div>
             )}
           </div>
-        </Popover>
+          }
+        >
+          <TextInput
+            size="xs"
+            label="Button text"
+            value={template.ctaButton.text}
+            onChange={(e) => handleCTAButtonChange({ text: e.currentTarget.value })}
+            placeholder="Click Me"
+          />
+          <ColorField
+            size="xs"
+            label="Background color"
+            withinPortal={false}
+            value={template.ctaButton.backgroundColor}
+            onChange={(backgroundColor) => handleCTAButtonChange({ backgroundColor })}
+          />
+          <ColorField
+            size="xs"
+            label="Text color"
+            withinPortal={false}
+            value={template.ctaButton.textColor}
+            onChange={(textColor) => handleCTAButtonChange({ textColor })}
+          />
+          <SliderField
+            label="Corner radius"
+            min={0}
+            max={20}
+            value={template.ctaButton.borderRadius || 8}
+            onChange={(borderRadius) => handleCTAButtonChange({ borderRadius })}
+          />
+        </InlineEditPopover>
       );
     }
-    
+
     return (
       <div
-        className="z-10 px-6 py-2 font-semibold text-sm cursor-pointer transition-transform hover:scale-105"
+        className="z-10 px-6 py-2 font-semibold text-sm cursor-pointer"
         style={{
           backgroundColor: template.ctaButton.backgroundColor,
           color: template.ctaButton.textColor,

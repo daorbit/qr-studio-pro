@@ -12,6 +12,8 @@
     --card: 0 0% 100%;
     --card-foreground: 240 3% 12%;
 
+    --panel: 0 0% 100%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 240 3% 12%;
 
@@ -60,6 +62,15 @@
     --sidebar-accent: 25 95% 96%;
     --sidebar-accent-foreground: 25 90% 32%;
     --sidebar-ring: 25 95% 53%;
+
+    --viz-1: #2a78d6;
+    --viz-2: #eb6834;
+    --viz-3: #1baf7a;
+    --viz-4: #eda100;
+    --viz-5: #e87ba4;
+    --viz-other: #a8a7a1;
+    --viz-good: #006300;
+    --viz-bad: #d03b3b;
   }
 
   .dark {
@@ -68,6 +79,8 @@
 
     --card: 228 8% 9.5%;
     --card-foreground: 240 9% 95%;
+
+    --panel: 220 8% 7%;
 
     --popover: 228 8% 12%;
     --popover-foreground: 240 9% 95%;
@@ -115,6 +128,15 @@
     --sidebar-accent: 228 7% 14%;
     --sidebar-accent-foreground: 25 95% 66%;
     --sidebar-ring: 25 95% 56%;
+
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-5: #d55181;
+    --viz-other: #5b5a55;
+    --viz-good: #0ca30c;
+    --viz-bad: #e66767;
   }
 
   /* Prevent mobile zoom on input focus */
@@ -165,6 +187,34 @@
 
   ::selection {
     background: hsl(var(--primary) / 0.2);
+  }
+
+  a[href],
+  button,
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="color"],
+  input[type="file"],
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="menuitemradio"],
+  [role="menuitemcheckbox"],
+  [role="option"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="slider"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
   }
 }
 
@@ -613,11 +663,6 @@ background: hsl(var(--input-background)) !important;
   padding-bottom: env(safe-area-inset-bottom) !important;
 }
 
-/* Template editor modal body padding (no inline styles) */
-.template-editor-modal .ant-modal-body {
-  padding: 16px 24px !important;
-}
-
 /* ============================== */
 /* Ant Design - Table             */
 /* ============================== */
@@ -1043,38 +1088,6 @@ h5.ant-typography {
   background: hsl(var(--input)) !important;
 }
 
-/* ============================== */
-/* Admin Tabs Styling             */
-/* ============================== */
-.admin-tabs .ant-tabs-tab {
-  padding: 12px 20px !important;
-  margin: 0 8px 0 0 !important;
-  font-weight: 500 !important;
-  border-radius: 8px 8px 0 0 !important;
-  transition: all 0.2s ease !important;
-}
-
-.admin-tabs .ant-tabs-tab:hover {
-  background: hsl(var(--accent)) !important;
-}
-
-.admin-tabs .ant-tabs-tab-active {
-  background: hsl(var(--background)) !important;
-  border-color: hsl(var(--primary)) !important;
-}
-
-.admin-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: hsl(var(--primary)) !important;
-}
-
-.admin-tabs .ant-tabs-content-holder {
-  background: hsl(var(--card)) !important;
-  border-radius: 0 8px 8px 8px !important;
-  padding: 24px !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-top: 2px solid hsl(var(--primary)) !important;
-}
-
 .ant-switch-checked {
   background: hsl(var(--primary)) !important;
 }
@@ -1136,12 +1149,40 @@ h5.ant-typography {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+.app-scroll::-webkit-scrollbar {
+  width: 14px;
+}
+
+.app-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 20px;
+}
+
+.app-scroll::-webkit-scrollbar-thumb {
+  border: 5px solid transparent;
+  border-radius: 999px;
+  background: hsl(var(--foreground) / 0.16);
+  background-clip: padding-box;
+}
+
+.app-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 0.3);
+  background-clip: padding-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .app-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--foreground) / 0.2) transparent;
+  }
+}
+
 /* ============================== */
 /* Animations                     */
 /* ============================== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -1225,26 +1266,33 @@ h5.ant-typography {
 /* ============================== */
 /* Profile Tabs                   */
 /* ============================== */
+.profile-tabs .ant-tabs-nav {
+  margin-bottom: 24px !important;
+}
+
 .profile-tabs .ant-tabs-tab {
-  padding: 12px 20px !important;
-  margin: 0 4px 0 0 !important;
-  border-radius: 8px 8px 0 0 !important;
+  padding: 10px 2px !important;
+  margin: 0 20px 0 0 !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
 }
 
-.profile-tabs .ant-tabs-tab-active {
-  background: hsl(var(--primary) / 0.1) !important;
-  color: hsl(var(--primary)) !important;
+.profile-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.profile-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn,
+.profile-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: hsl(var(--foreground)) !important;
 }
 
 .profile-tabs .ant-tabs-ink-bar {
-  display: none !important;
+  background: hsl(var(--foreground)) !important;
+  height: 2px !important;
 }
 
 .profile-tabs .ant-tabs-content-holder {
-  background: hsl(var(--background)) !important;
-  border-radius: 0 8px 8px 8px !important;
-  border-top: none !important;
+  background: transparent !important;
 }
 
 /* ============================== */
@@ -1539,26 +1587,6 @@ h5.ant-typography {
   
   .profile-tabs .ant-tabs-content-holder {
     padding: 12px !important;
-  }
-}
-
-/* ============================== */
-/* Admin Tabs Mobile              */
-/* ============================== */
-@media (max-width: 640px) {
-  .admin-tabs .ant-tabs-nav {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  
-  .admin-tabs .ant-tabs-tab {
-    padding: 8px 12px !important;
-    font-size: 12px !important;
-    flex-shrink: 0 !important;
-  }
-  
-  .admin-tabs .ant-tabs-content-holder {
-    padding: 0px !important;
   }
 }
 

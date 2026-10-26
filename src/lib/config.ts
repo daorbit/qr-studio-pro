@@ -8,6 +8,9 @@ export const getAppOrigin = () => {
   return 'https://example.com';
 };
 
+export const SUPPORT_EMAIL = 'winning11.in@gmail.com';
+export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}`;
+
 export default {
   getAppOrigin,
 };

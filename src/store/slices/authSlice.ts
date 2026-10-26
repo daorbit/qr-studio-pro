@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { authAPI } from '@/lib/api';
 import { clearQRCodes } from './qrCodesSlice';
 import type { WhiteLabelConfig } from '@/context/authTypes';

@@ -1,95 +1,102 @@
 import React from 'react';
-import { Card, Typography } from 'antd';
-import { Check, X } from 'lucide-react';
-import type { Plans } from '@/types/payment';
-
-const { Title } = Typography;
+import { Check, Minus } from 'lucide-react';
+import type { Plan } from '@/types/payment';
+import { cn } from '@/lib/utils';
+import type { CatalogPlan, PlanKey } from './billing/planCatalog';
 
 interface FeatureComparisonProps {
-  plans: Plans;
+  catalog: CatalogPlan[];
+  currentKey?: PlanKey | 'trial';
 }
 
-const FeatureComparison: React.FC<FeatureComparisonProps> = ({ plans }) => {
-  const formatFeatureValue = (value: any) => {
-    if (value === -1) return 'Unlimited';
-    if (typeof value === 'boolean') {
-      return value ? (
-        <Check className="w-4 h-4 text-green-600 dark:text-green-500 mx-auto" />
-      ) : (
-        <X className="w-4 h-4 text-gray-300 dark:text-gray-600 mx-auto" />
-      );
-    }
-    if (typeof value === 'number') return value.toLocaleString();
-    return value;
-  };
+type FeatureKey = keyof Plan['features'];
 
-  const formatFreeValue = (value: any) => {
-    if (typeof value === 'boolean') {
-      return value ? (
-        <Check className="w-4 h-4 text-green-600 dark:text-green-500 mx-auto" />
-      ) : (
-        <X className="w-4 h-4 text-gray-300 dark:text-gray-600 mx-auto" />
-      );
-    }
-    return value;
-  };
+const ROWS: { group: string; items: { label: string; key: FeatureKey }[] }[] = [
+  {
+    group: 'Limits',
+    items: [
+      { label: 'QR codes', key: 'maxQRCodes' },
+      { label: 'Scans per code', key: 'maxScansPerQR' },
+      { label: 'Seats', key: 'maxMembers' },
+    ],
+  },
+  {
+    group: 'Analytics',
+    items: [
+      { label: 'Scan analytics', key: 'analytics' },
+      { label: 'Audience insights', key: 'advancedAnalytics' },
+    ],
+  },
+  {
+    group: 'Protection',
+    items: [
+      { label: 'Password protection', key: 'passwordProtection' },
+      { label: 'Expiry dates', key: 'expirationDate' },
+      { label: 'Custom scan limits', key: 'customScanLimit' },
+    ],
+  },
+  {
+    group: 'Branding',
+    items: [
+      { label: 'Remove watermark', key: 'removeWatermark' },
+      { label: 'White-label redirect pages', key: 'whiteLabel' },
+    ],
+  },
+];
 
-  const features = [
-    { label: 'QR Codes', free: '5', key: 'maxQRCodes' },
-    { label: 'Scans per QR', free: '100', key: 'maxScansPerQR' },
-    { label: 'Advanced Analytics', free: false, key: 'analytics' },
-    { label: 'White Label', free: false, key: 'whiteLabel' },
-    { label: 'Remove Watermark', free: false, key: 'removeWatermark' },
-    { label: 'Password Protection', free: false, key: 'passwordProtection' },
-    { label: 'Expiration Date', free: false, key: 'expirationDate' },
-    { label: 'Custom Scan Limit', free: false, key: 'customScanLimit' }
-  ];
-
-  return (
-    <Card 
-      className="mt-8 border border-gray-200 dark:border-gray-700"
-      styles={{ body: { padding: 0 } }}
-    >
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <Title level={5} className="!mb-0 !text-gray-800 dark:!text-gray-100">Feature Comparison</Title>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-              <th className="text-left py-4 px-6 font-medium text-gray-700 dark:text-gray-300">Features</th>
-              <th className="text-center py-4 px-4 font-medium text-gray-700 dark:text-gray-300">Free</th>
-              {Object.entries(plans).map(([planType, plan]) => (
-                <th key={planType} className="text-center py-4 px-4 font-medium text-gray-700 dark:text-gray-300">
-                  {plan.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {features.map((feature, index) => (
-              <tr 
-                key={feature.label} 
-                className={`border-b border-gray-100 dark:border-gray-700/50 last:border-0 ${
-                  index % 2 === 0 ? 'bg-gray-50/50 dark:bg-gray-800/30' : 'bg-white dark:bg-transparent'
-                }`}
-              >
-                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{feature.label}</td>
-                <td className="text-center py-4 px-4 text-gray-600 dark:text-gray-400">
-                  {formatFreeValue(feature.free)}
-                </td>
-                {Object.values(plans).map((plan, planIndex) => (
-                  <td key={planIndex} className="text-center py-4 px-4 text-gray-700 dark:text-gray-300">
-                    {formatFeatureValue(plan.features[feature.key as keyof typeof plan.features])}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  );
+const Cell: React.FC<{ value: number | boolean | undefined }> = ({ value }) => {
+  if (typeof value === 'boolean') {
+    return value ? (
+      <Check size={16} className="mx-auto text-primary" aria-label="Included" />
+    ) : (
+      <Minus size={16} className="mx-auto text-muted-foreground/50" aria-label="Not included" />
+    );
+  }
+  return <span className="font-medium tabular-nums text-foreground">{value === -1 ? 'Unlimited' : (value ?? 1).toLocaleString()}</span>;
 };
+
+const FeatureComparison: React.FC<FeatureComparisonProps> = ({ catalog, currentKey }) => (
+  <section className="overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+    <header className="border-b border-border px-5 py-4">
+      <h3 className="text-sm font-semibold text-foreground">Compare plans</h3>
+      <p className="mt-0.5 text-xs text-muted-foreground">Everything each plan includes, side by side.</p>
+    </header>
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] text-[13px]">
+        <thead>
+          <tr className="border-b border-border">
+            <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground">Feature</th>
+            {catalog.map((plan) => (
+              <th key={plan.key} className={cn('px-4 py-3 text-center text-[13px] font-semibold text-foreground', plan.key === currentKey && 'bg-primary/[0.05]')}>
+                {plan.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {ROWS.map((group) => (
+            <React.Fragment key={group.group}>
+              <tr>
+                <td colSpan={catalog.length + 1} className="bg-foreground/[0.025] px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {group.group}
+                </td>
+              </tr>
+              {group.items.map((row) => (
+                <tr key={row.key} className="border-t border-border">
+                  <td className="px-5 py-3 text-muted-foreground">{row.label}</td>
+                  {catalog.map((plan) => (
+                    <td key={plan.key} className={cn('px-4 py-3 text-center', plan.key === currentKey && 'bg-primary/[0.05]')}>
+                      <Cell value={plan.features[row.key]} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+);
 
 export default FeatureComparison;

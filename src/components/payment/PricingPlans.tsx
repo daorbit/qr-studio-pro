@@ -1,134 +1,54 @@
-import React, { useState } from 'react';
-import { Row, Col, Typography } from 'antd';
+import React, { useMemo, useState } from 'react';
 import { usePayment } from '@/hooks/usePayment';
-import type { Plans } from '@/types/payment';
+import EmptyBlock from '@/components/common/EmptyBlock';
 import DurationToggle from './DurationToggle';
-import CurrentPlanDisplay from './CurrentPlanDisplay';
 import PlanCard from './PlanCard';
 import FeatureComparison from './FeatureComparison';
-import LogoLoader from '@/components/common/LogoLoader';
+import { buildCatalog, planAction, yearlySavingPercent, type CatalogPlan, type Cycle } from './billing/planCatalog';
 
-const { Text } = Typography;
+const PricingPlans: React.FC = () => {
+  const { plans, subscription, processPayment } = usePayment();
+  const [cycle, setCycle] = useState<Cycle>(1);
+  const [processing, setProcessing] = useState<string | null>(null);
 
-interface PricingProps {
-  onSelectPlan?: (planType: string, duration: number) => void;
-  showCurrentPlan?: boolean;
-}
+  const catalog = useMemo(() => (plans ? buildCatalog(plans) : []), [plans]);
 
-const PricingPlans: React.FC<PricingProps> = ({ 
-  onSelectPlan, 
-  showCurrentPlan = true 
-}) => {
-  const { 
-    plans, 
-    subscription, 
-    plansLoading, 
-    subscriptionLoading, 
-    processPayment, 
-    loading 
-  } = usePayment();
-  
-  const [selectedDuration, setSelectedDuration] = useState<1 | 12>(1);
-  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  if (!plans) return <EmptyBlock title="We couldn't load the plans" description="Refresh the page to try again." />;
 
-  const handleSelectPlan = async (planType: string) => {
-    if (onSelectPlan) {
-      onSelectPlan(planType, selectedDuration);
-      return;
-    }
+  const onTrial = subscription?.planType === 'trial';
 
-    setProcessingPlan(planType);
-    const success = await processPayment(planType, selectedDuration);
-    setProcessingPlan(null);
-
-    if (success) {
-      // Payment successful, subscription will be updated via the hook
-    }
+  const handleSelect = async (plan: CatalogPlan) => {
+    setProcessing(plan.key);
+    await processPayment(plan.key, cycle);
+    setProcessing(null);
   };
-
-  const isCurrentPlan = (planType: string) => {
-    return subscription?.planType === planType;
-  };
-
-  const canUpgrade = (planType: string) => {
-    if (!subscription) return true;
-    const currentPlan = subscription.planType;
-    
-    // Trial users can upgrade to any paid plan to secure their subscription
-    if (currentPlan === 'trial') return true;
-    
-    const planOrder = { free: 0, basic: 1, pro: 2, enterprise: 3, trial: 4 };
-    return planOrder[currentPlan as keyof typeof planOrder] < planOrder[planType as keyof typeof planOrder];
-  };
-
-  if (plansLoading || subscriptionLoading) {
-    return (
-      <div className="flex justify-center items-center py-16">
-        <LogoLoader size="sm" />
-      </div>
-    );
-  }
-
-  if (!plans) {
-    return (
-      <div className="text-center py-16">
-        <Text className="text-gray-500 dark:text-gray-400">Unable to load pricing plans</Text>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <CurrentPlanDisplay 
-        subscription={subscription} 
-        showCurrentPlan={showCurrentPlan} 
-      />
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Choose a plan</h2>
+          <p className="text-sm text-muted-foreground">Prices in INR. Switch to yearly billing to save.</p>
+        </div>
+        <DurationToggle selectedDuration={cycle} onDurationChange={setCycle} yearlySaving={yearlySavingPercent(catalog)} />
+      </div>
 
-      <DurationToggle 
-        selectedDuration={selectedDuration}
-        onDurationChange={setSelectedDuration}
-      />
-
-      {/* Plans Grid */}
-      <Row gutter={[20, 20]} className="mb-8">
-        {/* Free Plan */}
-        <Col xs={24} md={12} lg={6}>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {catalog.map((plan) => (
           <PlanCard
-            planType="free"
-            selectedDuration={selectedDuration}
-            isCurrentPlan={isCurrentPlan('free')}
-            processingPlan={processingPlan}
-            onSelectPlan={handleSelectPlan}
-            canUpgrade={canUpgrade('free')}
-            subscription={subscription}
+            key={plan.key}
+            plan={plan}
+            cycle={cycle}
+            action={planAction(plan, subscription)}
+            featured={plan.key === 'pro' && !onTrial}
+            onTrial={onTrial}
+            loading={processing === plan.key}
+            onSelect={handleSelect}
           />
-        </Col>
+        ))}
+      </div>
 
-        {/* Paid Plans - exclude trial since it's auto-granted */}
-        {Object.entries(plans)
-          .filter(([planType]) => planType !== 'trial')
-          .map(([planType, plan]) => {
-            const isPopular = planType === 'pro';
-            
-            return (
-              <Col xs={24} md={12} lg={6} key={planType}>
-                <PlanCard
-                  planType={planType}
-                  plan={plan}
-                  selectedDuration={selectedDuration}
-                  isCurrentPlan={isCurrentPlan(planType)}
-                  isPopular={isPopular}
-                  processingPlan={processingPlan}
-                  onSelectPlan={handleSelectPlan}
-                  canUpgrade={canUpgrade(planType)}
-                  subscription={subscription}
-                />
-              </Col>
-            );
-          })}
-      </Row>
-
-      <FeatureComparison plans={plans} />
+      <FeatureComparison catalog={catalog} currentKey={onTrial ? 'pro' : subscription?.planType} />
     </div>
   );
 };

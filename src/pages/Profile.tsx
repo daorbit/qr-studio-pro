@@ -1,254 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { Typography, Tabs } from 'antd';
-import { User, Palette, Shield, Droplets, Tag, CreditCard, Crown, Building2, Users } from 'lucide-react';
+import React from 'react';
+import { Tabs } from '@mantine/core';
+import { Crown } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import DashboardLayout from '../components/layout/DashboardLayout';
-import ProfileInfo from './settings/ProfileInfo';
-import ThemeSettings from './settings/ThemeSettings';
-import SecuritySettings from './settings/SecuritySettings';
-import WatermarkSettings from '@/components/settings/WatermarkSettings';
-import WhiteLabelSettings from '@/components/settings/WhiteLabelSettings';
-import SubscriptionManagement from '@/components/payment/SubscriptionManagement';
-import WorkspaceGeneralSettings from '@/components/workspace/WorkspaceGeneralSettings';
-import MembersPanel from '@/components/workspace/members/MembersPanel';
-import { MobileSettingsNavigation, MobileSettingsActionBar } from '@/components/mobile/settings';
+import PageHeader from '../components/layout/PageHeader';
 import { usePayment } from '@/hooks/usePayment';
-import { useIsMobile } from '@/hooks/use-mobile';
-
-const { Title, Text } = Typography;
+import { SETTINGS_SECTIONS } from './settings/settingsSections';
 
 const Profile: React.FC = () => {
-  const { subscription, hasFeatureAccess } = usePayment();
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const [activeKey, setActiveKey] = useState('profile');
-  
-  // Check if user has premium features
-  const canRemoveWatermark = hasFeatureAccess('removeWatermark');
-  const canUseWhiteLabel = hasFeatureAccess('whiteLabel');
+  const { hasFeatureAccess } = usePayment();
+  const requested = location.pathname.split('/')[2];
+  const section = SETTINGS_SECTIONS.find((s) => s.id === requested) ?? SETTINGS_SECTIONS[0];
 
-  useEffect(() => {
-    setActiveKey(location.pathname.split('/')[2] || 'profile');
-  }, [location.pathname]);
-
-  const handleTabChange = (key: string) => {
-    setActiveKey(key);
-    navigate(`/settings/${key}`);
-  };
-  
-  const tabItems = [
-    {
-      key: 'profile',
-      label: (
-        <span className="flex items-center gap-2">
-          <User size={16} />
-          Account
-        </span>
-      ),
-      children: <ProfileInfo />,
-    },
-    {
-      key: 'workspace',
-      label: (
-        <span className="flex items-center gap-2">
-          <Building2 size={16} />
-          Workspace
-        </span>
-      ),
-      children: <WorkspaceGeneralSettings />,
-    },
-    {
-      key: 'members',
-      label: (
-        <span className="flex items-center gap-2">
-          <Users size={16} />
-          Members
-        </span>
-      ),
-      children: <MembersPanel />,
-    },
-    {
-      key: 'theme',
-      label: (
-        <span className="flex items-center gap-2">
-          <Palette size={16} />
-          Theme
-        </span>
-      ),
-      children: <ThemeSettings />,
-    },
-    {
-      key: 'watermark',
-      label: (
-        <span className="flex items-center gap-2">
-          <Droplets size={16} />
-          Watermark
-          {!canRemoveWatermark && <Crown size={12} className="text-amber-500" />}
-        </span>
-      ),
-      children: <WatermarkSettings />,
-    },
-    {
-      key: 'whitelabel',
-      label: (
-        <span className="flex items-center gap-2">
-          <Tag size={16} />
-          White-Label
-          {!canUseWhiteLabel && <Crown size={12} className="text-amber-500" />}
-        </span>
-      ),
-      children: <WhiteLabelSettings />,
-    },
-    {
-      key: 'subscription',
-      label: (
-        <span className="flex items-center gap-2">
-          <CreditCard size={16} />
-          Subscription
-        </span>
-      ),
-      children: <SubscriptionManagement />,
-    },
-    {
-      key: 'security',
-      label: (
-        <span className="flex items-center gap-2">
-          <Shield size={16} />
-          Security
-        </span>
-      ),
-      children: <SecuritySettings />,
-    },
-  ];
-
-  const mobileSettingsItems = [
-    {
-      key: 'profile',
-      title: 'Account',
-      description: 'Manage your personal information.',
-      icon: <User size={20} />,
-    },
-    {
-      key: 'workspace',
-      title: 'Workspace',
-      description: 'Name, plan and danger zone',
-      icon: <Building2 size={20} />,
-    },
-    {
-      key: 'members',
-      title: 'Members',
-      description: 'Invite teammates and manage roles',
-      icon: <Users size={20} />,
-    },
-    {
-      key: 'theme',
-      title: 'Theme',
-      description: 'Customize your app appearance',
-      icon: <Palette size={20} />,
-    },
-    {
-      key: 'watermark',
-      title: 'Watermark',
-      description: 'Configure QR code branding',
-      icon: <Droplets size={20} />,
-      premium: !canRemoveWatermark,
-    },
-    {
-      key: 'whitelabel',
-      title: 'White-Label',
-      description: 'Custom branding options',
-      icon: <Tag size={20} />,
-      premium: !canUseWhiteLabel,
-    },
-    {
-      key: 'subscription',
-      title: 'Subscription',
-      description: 'Manage your plan and billing',
-      icon: <CreditCard size={20} />,
-    },
-    {
-      key: 'security',
-      title: 'Security',
-      description: 'Password and authentication settings',
-      icon: <Shield size={20} />,
-    },
-  ];
-
-  // Mobile: Show navigation and content
-  if (isMobile) {
-    const activeIndex = mobileSettingsItems.findIndex(item => item.key === activeKey);
-
-    const handlePrevious = () => {
-      if (activeIndex > 0) {
-        const prevItem = mobileSettingsItems[activeIndex - 1];
-        handleTabChange(prevItem.key);
-      }
-    };
-
-    const handleNext = () => {
-      if (activeIndex < mobileSettingsItems.length - 1) {
-        const nextItem = mobileSettingsItems[activeIndex + 1];
-        handleTabChange(nextItem.key);
-      }
-    };
-
-    const activeItem = tabItems.find(item => item.key === activeKey);
-
-    return (
-      <DashboardLayout>
-        <div className="max-w-2xl mx-auto  pb-24">
-          {/* Header */}
-          <div className="text-center mb-4 sm:mb-6">
-            <Title level={window.innerWidth < 640 ? 3 : 2} className="mb-1 sm:mb-2">Settings</Title>
-          </div>
-
-          {/* Settings Navigation */}
-          <MobileSettingsNavigation
-            items={mobileSettingsItems}
-            activeKey={activeKey}
-            onItemClick={handleTabChange}
-          />
-
-          {/* Active Settings Content */}
-          <div className="mt-6">
-            {activeItem?.children}
-          </div>
-        </div>
-
-        {/* Mobile Action Bar */}
-        <MobileSettingsActionBar
-          currentIndex={activeIndex}
-          totalItems={mobileSettingsItems.length}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          canGoPrevious={activeIndex > 0}
-          canGoNext={activeIndex < mobileSettingsItems.length - 1}
-        />
-      </DashboardLayout>
-    );
-  }
-
-  // Desktop: Use tabs
   return (
-    <DashboardLayout>
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <Title level={2} className="mb-2">Settings</Title>
-          <Text type="secondary">Manage your account details and preferences</Text>
-        </div>
+    <div className="animate-fade-in">
+      <PageHeader title="Settings" description="Your profile, how QR Studio looks, your branding, and how your account is protected." />
 
-        <Tabs
-          activeKey={activeKey}
-          onChange={handleTabChange}
-          items={tabItems}
-          size="large"
-          tabBarGutter={24}
-          className="profile-tabs"
-        />
-      </div>
-    </DashboardLayout>
+      <Tabs value={section.id} onChange={(id) => id && navigate(`/settings/${id}`, { replace: true })} keepMounted={false}>
+        <Tabs.List className="mb-6 flex-nowrap overflow-x-auto scrollbar-hide">
+          {SETTINGS_SECTIONS.map(({ id, label, icon: Icon, premium }) => (
+            <Tabs.Tab
+              key={id}
+              value={id}
+              leftSection={<Icon size={15} />}
+              rightSection={premium && !hasFeatureAccess(premium) ? <Crown size={12} className="text-amber-500" /> : undefined}
+              className="shrink-0"
+            >
+              {label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+
+        {SETTINGS_SECTIONS.map(({ id, description, Panel }) => (
+          <Tabs.Panel key={id} value={id}>
+            <div className="max-w-[920px]">
+              <p className="mb-5 text-sm text-muted-foreground">{description}</p>
+              <Panel />
+            </div>
+          </Tabs.Panel>
+        ))}
+      </Tabs>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 # qr-studio-pro (QR Studio app)
 
-This is the signed-in QR Studio web app. It started as a Lovable project and uses Vite 5, React 18, TypeScript, Tailwind 3, shadcn/ui (Radix), antd 6, Redux Toolkit and React Query.
+This is the signed-in QR Studio web app. It started as a Lovable project and uses Vite 5, React 18, TypeScript, Tailwind 3, shadcn/ui (Radix), Mantine, Redux Toolkit and React Query. The app is partway through replacing antd with Mantine, so some files still import antd.
 
 ## Commands
 
@@ -22,7 +22,7 @@ Use npm. The repo also has bun lockfiles, but `package-lock.json` is the one to 
 
 ## Structure
 
-- `src/App.tsx` sets up the providers (Redux, React Query, ThemeProvider, SubscriptionProvider and antd `ConfigProvider` themed from the current theme) and the lazy-loaded routes. Wrap protected pages in `ProtectedRoute` and admin pages in `AdminRoute`.
+- `src/App.tsx` sets up the providers (Redux, React Query, ThemeProvider, SubscriptionProvider and `MantineProvider` with `Notifications` and `ModalsProvider`, themed from `src/theme/mantineTheme.ts` and following the light/dark mode) and the lazy-loaded routes. Wrap protected pages in `ProtectedRoute` and admin pages in `AdminRoute`.
 - `src/pages/` holds the route pages. `pages/redirector/` is the public scan page and has its own `components/`, `hooks/` and `utils/`. `pages/settings/` holds the settings tabs.
 - `src/components/`:
   - `ui/`: shadcn primitives. Don't edit them unless you have to. Add new ones with the shadcn CLI (`components.json`).
@@ -39,7 +39,8 @@ Use npm. The repo also has bun lockfiles, but `package-lock.json` is the one to 
 
 - Use the `@/` alias for `src/`.
 - Style with Tailwind and the theme CSS variables in `index.css` and `tailwind.config.ts`. Don't use inline styles. Don't add comments to CSS files.
-- Use shadcn components for UI first. antd is used where it already appears (tables, admin, some inputs), and its theme follows the current theme through `ConfigProvider`.
+- Build UI with Mantine, using the theme in `src/theme/mantineTheme.ts`. The primary color is orange. Use `lib/notify.tsx` for notifications and `components/common/DataTable.tsx` for tables.
+- Don't add new antd imports. When you edit a file that still uses antd, move it to Mantine.
 - Look in `components/common`, `hooks/` and `utils/` before you write a new helper.
 - Feature gating follows the backend plan features in `be-da-qr-studio/middleware/subscription.js`. Use `SubscriptionContext` and `useLimitReachedDialog` to show limit messages.
 - `vercel.json` rewrites every path to `index.html`, so this is a pure SPA.

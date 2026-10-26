@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Button, Input, Modal, message } from 'antd';
+import { Button, Modal, TextInput } from '@mantine/core';
+import { AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '@/store';
 import { deleteWorkspace, fetchWorkspaces, leaveWorkspace } from '@/store/slices/workspaceSlice';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { confirmAction, errorMessage, message } from '@/lib/notify';
+import SettingsCard from '@/components/common/SettingsCard';
 
 const WorkspaceDangerZone: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -23,44 +26,60 @@ const WorkspaceDangerZone: React.FC = () => {
       message.success(done);
       navigate('/workspaces', { replace: true });
     } catch (error) {
-      message.error(typeof error === 'string' ? error : 'Something went wrong');
+      message.error(errorMessage(error));
     } finally {
       setBusy(false);
       setConfirmOpen(false);
     }
   };
 
-  return (
-    <div className="rounded-xl border border-destructive/30 p-4 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-foreground">{isOwner ? 'Delete workspace' : 'Leave workspace'}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">
-            {isOwner
-              ? 'Permanently deletes every QR code, scan and setting in this workspace.'
-              : 'You will lose access until someone invites you again.'}
-          </div>
-        </div>
-        <Button danger onClick={() => (isOwner ? setConfirmOpen(true) : finish(leaveWorkspace, 'You left the workspace'))} loading={busy && !isOwner}>
-          {isOwner ? 'Delete workspace' : 'Leave'}
-        </Button>
-      </div>
+  const handleClick = () => {
+    if (isOwner) {
+      setTyped('');
+      setConfirmOpen(true);
+      return;
+    }
+    confirmAction({
+      title: `Leave ${workspace.name}?`,
+      body: 'You will lose access until someone invites you again.',
+      confirmLabel: 'Leave',
+      danger: true,
+      onConfirm: () => finish(leaveWorkspace, 'You left the workspace'),
+    });
+  };
 
-      <Modal
-        open={confirmOpen}
-        title={`Delete ${workspace.name}?`}
-        okText="Delete forever"
-        okButtonProps={{ danger: true, disabled: typed !== workspace.name, loading: busy }}
-        onOk={() => finish(deleteWorkspace, 'Workspace deleted')}
-        onCancel={() => setConfirmOpen(false)}
-        centered
-      >
-        <p className="text-sm text-muted-foreground mb-3">
+  return (
+    <>
+    <SettingsCard
+      tone="danger"
+      icon={AlertTriangle}
+      title={isOwner ? 'Delete workspace' : 'Leave workspace'}
+      description={
+        isOwner
+          ? 'Permanently deletes every QR code, scan and setting in this workspace.'
+          : 'You will lose access until someone invites you again.'
+      }
+      action={
+        <Button color="red" variant="light" onClick={handleClick}>
+          {isOwner ? 'Delete' : 'Leave'}
+        </Button>
+      }
+    />
+      <Modal opened={confirmOpen} onClose={() => setConfirmOpen(false)} title={`Delete ${workspace.name}?`} size={440}>
+        <p className="mb-3 text-sm text-muted-foreground">
           This can&apos;t be undone. Type <span className="font-semibold text-foreground">{workspace.name}</span> to confirm.
         </p>
-        <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={workspace.name} />
+        <TextInput value={typed} onChange={(e) => setTyped(e.currentTarget.value)} placeholder={workspace.name} aria-label="Workspace name" />
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="default" onClick={() => setConfirmOpen(false)}>
+            Cancel
+          </Button>
+          <Button color="red" disabled={typed !== workspace.name} loading={busy} onClick={() => finish(deleteWorkspace, 'Workspace deleted')}>
+            Delete forever
+          </Button>
+        </div>
       </Modal>
-    </div>
+    </>
   );
 };
 

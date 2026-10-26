@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/config';
 import { ArrowLeft } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -82,7 +83,7 @@ const TermsAndConditions = () => {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">9. Contact</h2>
             <p className="text-muted-foreground">
-              For questions about these Terms, please contact us through our <Link to="/contact" className="text-primary hover:underline">Contact page</Link>.
+              For questions about these Terms, please contact us through our <a href={SUPPORT_MAILTO} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           </section>
         </div>

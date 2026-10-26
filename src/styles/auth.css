@@ -1,26 +1,21 @@
-.auth-form .ant-input-affix-wrapper,
-.auth-form .ant-input {
-  height: 46px !important;
-  border-radius: 10px !important;
-  background: hsl(var(--card)) !important;
+.auth-form .mantine-Input-input {
+  height: 46px;
+  min-height: 46px;
+  border-radius: 10px;
+  font-size: 15px;
 }
 
-.auth-form .ant-input-affix-wrapper > input.ant-input {
-  height: auto !important;
-  background: transparent !important;
-}
-
-.auth-form .ant-btn:not(.ant-btn-link) {
-  height: 46px !important;
-  border-radius: 10px !important;
+.auth-form .mantine-Button-root:not([data-variant="transparent"]):not([data-variant="subtle"]) {
+  height: 46px;
+  border-radius: 10px;
   font-weight: 600;
 }
 
 @media (max-width: 640px) {
-  .auth-form .ant-input-affix-wrapper,
-  .auth-form .ant-input,
-  .auth-form .ant-btn:not(.ant-btn-link) {
-    height: 50px !important;
-    border-radius: 12px !important;
+  .auth-form .mantine-Input-input,
+  .auth-form .mantine-Button-root:not([data-variant="transparent"]):not([data-variant="subtle"]) {
+    height: 50px;
+    min-height: 50px;
+    border-radius: 12px;
   }
 }

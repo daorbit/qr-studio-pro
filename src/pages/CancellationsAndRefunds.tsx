@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/config';
 import { ArrowLeft } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -34,7 +35,7 @@ const CancellationsAndRefunds = () => {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">How to Request a Refund</h2>
             <p className="text-muted-foreground">
-              To request a refund, please contact our support team through the <Link to="/contact" className="text-primary hover:underline">Contact page</Link> with 
+              To request a refund, please contact our support team through the <a href={SUPPORT_MAILTO} className="text-primary hover:underline">{SUPPORT_EMAIL}</a> with 
               your account email and reason for the refund request. We will process your request within 5-7 business days.
             </p>
           </section>
@@ -71,7 +72,7 @@ const CancellationsAndRefunds = () => {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">Questions?</h2>
             <p className="text-muted-foreground">
-              If you have any questions about our cancellation or refund policies, please reach out through our <Link to="/contact" className="text-primary hover:underline">Contact page</Link>.
+              If you have any questions about our cancellation or refund policies, please reach out through our <a href={SUPPORT_MAILTO} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           </section>
         </div>

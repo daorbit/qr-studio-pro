@@ -1,10 +1,10 @@
 import React from 'react';
-import { Card, Empty, Typography, Statistic, Row, Col } from 'antd';
+import { Loader } from '@mantine/core';
 import { MapPin } from 'lucide-react';
-import { GeographicHeatmapData, CityData } from '@/types/analytics';
-import LogoLoader from '@/components/common/LogoLoader';
-
-const { Title, Text } = Typography;
+import type { GeographicHeatmapData } from '@/types/analytics';
+import ChartPanel from './chart/ChartPanel';
+import RankedList from './chart/RankedList';
+import { formatNumber } from './chart/chartTheme';
 
 interface HeatmapProps {
   data?: GeographicHeatmapData;
@@ -13,79 +13,46 @@ interface HeatmapProps {
 }
 
 const GeographicHeatmap: React.FC<HeatmapProps> = ({ data, loading }) => {
-  if (loading) {
-    return (
-      <Card>
-        <div className="flex items-center justify-center h-64">
-          <LogoLoader size="sm" />
-        </div>
-      </Card>
-    );
-  }
-
-  if (!data || !data.cityData || !Array.isArray(data.cityData) || data.cityData.length === 0) {
-    return (
-      <Card title="Geographic Distribution">
-        <Empty description="No geographic data available" />
-      </Card>
-    );
-  }
-
-  const topCities = (data.cityData || []).slice(0, 10);
-  const maxCount = Math.max(...topCities.map((c: any) => c.count || c.scans || 0), 1);
-  
-  // Calculate total scans if not provided
-  const totalScans = data.total || data.totalScansWithCoordinates || 
-    (data.cityData || []).reduce((sum, city) => sum + (city.count || city.scans || 0), 0);
+  const cities = Array.isArray(data?.cityData) ? data!.cityData : [];
+  const totalScans =
+    data?.total || data?.totalScansWithCoordinates || cities.reduce((sum, c) => sum + (c.count || c.scans || 0), 0);
 
   return (
-    <Card 
-      title={
-        <div className="flex items-center gap-2">
-          <MapPin size={18} className="text-primary" />
-          Geographic Distribution
-        </div>
+    <ChartPanel
+      title="Cities"
+      description="Where scans happen"
+      icon={MapPin}
+      empty={!loading && cities.length === 0}
+      emptyText="No location data yet"
+      extra={
+        cities.length > 0 ? (
+          <div className="text-right text-[11px] text-muted-foreground">
+            <span className="font-semibold text-foreground">{formatNumber(cities.length)}</span> places ·{' '}
+            <span className="font-semibold text-foreground">{formatNumber(totalScans)}</span> scans
+          </div>
+        ) : null
       }
     >
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col span={12}>
-          <Statistic title="Total Locations" value={data.cityData?.length || 0} />
-        </Col>
-        <Col span={12}>
-          <Statistic title="Total Scans" value={totalScans} />
-        </Col>
-      </Row>
-
-      <div className="space-y-3">
-        <Title level={5}>Top Locations</Title>
-        {topCities.map((city: CityData, index: number) => {
-          const count = city.count || city.scans || 0;
-          const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
-          return (
-            <div key={index} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Text strong>
-                  {city.city || 'Unknown'}, {city.country || 'Unknown'}
-                </Text>
-                <Text type="secondary">{count} scans</Text>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {data.cityData.length > 10 && (
-        <Text type="secondary" className="mt-4 block text-center">
-          And {data.cityData.length - 10} more locations...
-        </Text>
+      {loading ? (
+        <div className="flex h-48 items-center justify-center">
+          <Loader size="sm" />
+        </div>
+      ) : (
+        <RankedList
+          limit={8}
+          items={cities.map((c, i) => ({
+            key: `${c.city}-${c.country}-${i}`,
+            label: (
+              <>
+                {c.city || 'Unknown'}
+                <span className="ml-1.5 text-muted-foreground">{c.country}</span>
+              </>
+            ),
+            value: c.count || c.scans || 0,
+          }))}
+        />
       )}
-    </Card>
+    </ChartPanel>
   );
 };
 

@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import AuthHeader from '@/components/auth/AuthHeader';
 import WorkspaceMark from '@/components/workspace/WorkspaceMark';
+import { suggestWorkspaceName } from '@/utils/workspaceName';
 
 interface WorkspaceStepProps {
   onDone: () => void;
@@ -11,13 +12,6 @@ interface WorkspaceStepProps {
   subtitle?: string;
   cta?: string;
 }
-
-const suggestName = (email?: string, name?: string) => {
-  const domain = email?.split('@')[1]?.split('.')[0];
-  const generic = ['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'proton', 'live'];
-  if (domain && !generic.includes(domain.toLowerCase())) return domain.charAt(0).toUpperCase() + domain.slice(1);
-  return name ? `${name.split(' ')[0]}'s workspace` : '';
-};
 
 const WorkspaceStep: React.FC<WorkspaceStepProps> = ({
   onDone,
@@ -27,7 +21,7 @@ const WorkspaceStep: React.FC<WorkspaceStepProps> = ({
 }) => {
   const { user } = useAuth();
   const { createWorkspace } = useWorkspace();
-  const [name, setName] = useState(() => suggestName(user?.email, user?.name));
+  const [name, setName] = useState(() => suggestWorkspaceName(user?.email, user?.name));
   const [creating, setCreating] = useState(false);
 
   const submit = async (e: React.FormEvent) => {

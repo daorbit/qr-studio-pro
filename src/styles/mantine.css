@@ -1,0 +1,76 @@
+.app-menu-dropdown {
+  padding: 6px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--popover));
+}
+
+.app-menu-item {
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  gap: 10px;
+}
+
+.app-menu-item + .app-menu-item {
+  margin-top: 2px;
+}
+
+.app-menu-item[data-hovered] {
+  background: hsl(var(--foreground) / 0.06);
+}
+
+.app-menu-label {
+  padding: 8px 10px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.mantine-Input-input {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.mantine-Input-input:focus,
+.mantine-Input-input:focus-within {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+}
+
+.mantine-InputWrapper-label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.mantine-Modal-content,
+.mantine-Popover-dropdown {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--popover));
+}
+
+.mantine-Card-root {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.mantine-Tabs-tab {
+  font-weight: 500;
+}
+
+.app-toast {
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--popover));
+  box-shadow: var(--shadow-float);
+}
+
+.app-toast-message {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}

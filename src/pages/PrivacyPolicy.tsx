@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/config';
 import { ArrowLeft } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -96,7 +97,7 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">Contact Us</h2>
             <p className="text-muted-foreground">
-              If you have any questions about this Privacy Policy, please contact us through our <Link to="/contact" className="text-primary hover:underline">Contact page</Link>.
+              If you have any questions about this Privacy Policy, please contact us through our <a href={SUPPORT_MAILTO} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           </section>
         </div>

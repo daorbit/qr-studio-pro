@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { message } from 'antd';
+import { message } from '@/lib/notify';
 import { z } from 'zod';
 import { qrCodeAPI } from '@/lib/api';
 import { getSmartRedirectUrl, DIRECT_CONTENT_TYPES } from '../utils/redirectUtils';

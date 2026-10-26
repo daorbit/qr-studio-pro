@@ -1,146 +1,86 @@
 import React, { useState } from 'react';
-import { Card, Typography, Switch, Input, message, Button, Tooltip, Alert } from 'antd';
-import { Droplets, Save, HelpCircle, Crown, ArrowUpRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Button, Switch, TextInput } from '@mantine/core';
+import { Droplets, Eye } from 'lucide-react';
 import { usePayment } from '@/hooks/usePayment';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { errorMessage, message } from '@/lib/notify';
+import SettingsCard from '@/components/common/SettingsCard';
+import SettingRow from '@/components/common/SettingRow';
+import UpgradeNotice from '@/components/common/UpgradeNotice';
 
-const { Title, Text } = Typography;
+const MAX_LENGTH = 30;
 
 const WatermarkSettings: React.FC = () => {
-  const navigate = useNavigate();
   const { workspace, canManage, updateWorkspace } = useWorkspace();
   const { hasFeatureAccess } = usePayment();
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [removeWatermark, setRemoveWatermark] = useState(workspace?.removeWatermark || false);
   const [watermarkText, setWatermarkText] = useState(workspace?.watermarkText || 'QR Studio');
 
-  const canRemoveWatermark = hasFeatureAccess('removeWatermark') && canManage;
+  const entitled = hasFeatureAccess('removeWatermark');
+  const editable = entitled && canManage;
+  const dirty = removeWatermark !== (workspace?.removeWatermark || false) || watermarkText.trim() !== (workspace?.watermarkText || 'QR Studio');
+  const showsWatermark = !(removeWatermark && entitled);
 
-  const handleSave = async () => {
+  const save = async () => {
+    setSaving(true);
     try {
-      setLoading(true);
       await updateWorkspace({ removeWatermark, watermarkText: watermarkText.trim() });
-      message.success('Watermark settings saved for this workspace');
+      message.success('Watermark settings saved');
     } catch (error) {
-      message.error(typeof error === 'string' ? error : 'Failed to save settings');
+      message.error(errorMessage(error, 'Failed to save settings'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <Card className="shadow-sm">
-      {/* Premium Feature Alert for Free Users */}
-      {!canRemoveWatermark && (
-        <Alert
-          type="info"
-          showIcon
-          icon={<Crown size={16} />}
-          message="Premium Feature"
-          description={
-            <div className="flex items-center justify-between">
-              <span>Upgrade to Pro to remove watermarks and customize your QR codes</span>
-              <Button 
-                type="primary" 
-                size="small" 
-                icon={<ArrowUpRight size={14} />}
-                onClick={() => navigate('/pricing')}
-              >
-                Upgrade Now
-              </Button>
-            </div>
-          }
-          className="mb-6"
-        />
-      )}
+    <div className="space-y-5">
+      {!entitled && <UpgradeNotice description="Upgrade to remove the watermark or replace it with your own brand." />}
 
-      <div className="flex items-center justify-between mb-6">{' '}
-        <Title level={4} className="mb-0 flex items-center gap-2">
-          <Droplets size={18} />
-          Watermark Settings
-          <Tooltip 
-            title="Watermarks are small text or logos added to your QR code designs. They help with branding but can be removed for a cleaner look."
-            color="white"
-            overlayInnerStyle={{ color: '#333' }}
-          >
-            <HelpCircle size={16} className="text-muted-foreground hover:text-foreground transition-colors cursor-help" />
-          </Tooltip>
-        </Title>
-        <Button
-          type="primary"
-          icon={<Save size={window.innerWidth < 640 ? 14 : 16} />}
-          onClick={handleSave}
-          loading={loading}
-          disabled={!canRemoveWatermark}
-          size={window.innerWidth < 640 ? "small" : "middle"}
-          className="text-xs sm:text-sm"
-        >
-          {window.innerWidth < 640 ? "Save" : "Save Changes"}
-        </Button>
-      </div>
+      <SettingsCard
+        icon={Droplets}
+        title="Watermark"
+        description="A small line of text added to every QR code you download from this workspace."
+        action={
+          editable && (
+            <Button size="xs" onClick={save} loading={saving} disabled={!dirty}>
+              Save
+            </Button>
+          )
+        }
+      >
+        <div className="space-y-5">
+          <SettingRow title="Remove watermark" description="Download clean codes with no attribution." disabled={!editable}>
+            <Switch checked={removeWatermark && entitled} onChange={(e) => setRemoveWatermark(e.currentTarget.checked)} disabled={!editable} aria-label="Remove watermark" />
+          </SettingRow>
 
-      <div className="space-y-4 sm:space-y-6">
-        {/* Remove Watermark Toggle */}
-        <div className={`flex items-center justify-between p-3 sm:p-4 bg-muted/30 rounded-lg border border-border ${!canRemoveWatermark ? 'opacity-50' : ''}`}>
-          <div className="flex-1 min-w-0">
-            <Text strong className="block text-sm sm:text-base">Remove Watermark from All QR Codes</Text>
-            <Text type="secondary" className="text-xs sm:text-sm">
-              When enabled, watermarks will not be added to any of your QR codes
-              {!canRemoveWatermark && ' (Premium Feature)'}
-            </Text>
-          </div>
-          <Switch
-            checked={removeWatermark && canRemoveWatermark}
-            onChange={setRemoveWatermark}
-            checkedChildren="ON"
-            unCheckedChildren="OFF"
-            disabled={!canRemoveWatermark}
-            size={window.innerWidth < 640 ? "small" : "default"}
-          />
-        </div>
-
-        {/* Custom Watermark Text */}
-        <div className={removeWatermark && canRemoveWatermark ? 'opacity-50 pointer-events-none' : ''}>
-          <Text strong className="block mb-2 text-sm sm:text-base">Custom Watermark Text</Text>
-          <Text type="secondary" className="text-xs sm:text-sm block mb-3">
-            Enter your custom watermark text (e.g., your brand name or website)
-          </Text>
-          <Input
+          <TextInput
+            label="Watermark text"
+            description="Your brand name or website works well."
             value={watermarkText}
-            onChange={(e) => setWatermarkText(e.target.value)}
-            placeholder="Enter watermark text"
-            maxLength={30}
-            disabled={(removeWatermark && canRemoveWatermark) || !canRemoveWatermark}
-            suffix={<Text type="secondary" className="text-xs">{watermarkText.length}/30</Text>}
-            size={window.innerWidth < 640 ? "small" : "middle"}
+            onChange={(e) => setWatermarkText(e.currentTarget.value)}
+            maxLength={MAX_LENGTH}
+            disabled={!editable || !showsWatermark}
+            rightSection={<span className="pr-2 text-[11px] tabular-nums text-muted-foreground">{watermarkText.length}/{MAX_LENGTH}</span>}
+            rightSectionWidth={52}
           />
         </div>
+      </SettingsCard>
 
-        {/* Preview */}
-        <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <Text strong className="block mb-3">Preview</Text>
-          <div className="relative inline-block bg-white p-4 rounded-lg border">
-            <div className="w-24 h-24 bg-muted/50 rounded flex items-center justify-center">
-              <div className="w-16 h-16 bg-foreground/10 rounded" />
+      <SettingsCard icon={Eye} title="Preview" description={showsWatermark ? `“${watermarkText || ' '}” appears in the corner of each code.` : 'Your codes download without a watermark.'}>
+        <div className="create-stage flex justify-center rounded-xl py-8">
+          <div className="relative rounded-2xl bg-white p-4 shadow-card">
+            <div className="grid h-24 w-24 grid-cols-5 gap-1">
+              {Array.from({ length: 25 }).map((_, i) => (
+                <span key={i} className={(i * 7) % 3 === 0 ? 'rounded-[2px] bg-zinc-900' : 'rounded-[2px] bg-zinc-200'} />
+              ))}
             </div>
-            {!removeWatermark && watermarkText && (
-              <div className="absolute bottom-1 right-1 text-[8px] text-muted-foreground opacity-60">
-                {watermarkText}
-              </div>
-            )}
+            {showsWatermark && watermarkText && <span className="absolute bottom-1 right-2 text-[8px] text-zinc-500">{watermarkText}</span>}
           </div>
-          <Text type="secondary" className="block mt-2 text-xs">
-            {!canRemoveWatermark 
-              ? 'Upgrade to Pro to remove watermarks and customize your QR codes'
-              : removeWatermark 
-                ? 'Watermark is disabled - your QR codes will be clean'
-                : `Watermark "${watermarkText}" will appear on your QR codes`
-            }
-          </Text>
         </div>
-      </div>
-    </Card>
+      </SettingsCard>
+    </div>
   );
 };
 

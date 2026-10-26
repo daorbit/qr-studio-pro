@@ -24,6 +24,7 @@ export default {
         float: "var(--shadow-float)",
       },
       colors: {
+        panel: "hsl(var(--panel))",
         cta: {
           DEFAULT: "hsl(var(--cta))",
           hover: "hsl(var(--cta-hover))",

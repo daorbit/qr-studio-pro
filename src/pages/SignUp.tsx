@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Input, Button, message } from "antd";
+import { Button, PasswordInput, TextInput } from "@mantine/core";
+import { message } from "@/lib/notify";
 import { useLocation, useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +26,7 @@ const SignUp: React.FC = () => {
   }, [user, navigate, search]);
 
   const set = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [field]: e.currentTarget.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,29 +72,16 @@ const SignUp: React.FC = () => {
       <AuthDivider />
 
       <form onSubmit={handleSubmit} className="space-y-4" aria-label="Sign up form" noValidate>
-        <div>
-          <label htmlFor="signup-name" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-            Full name
-          </label>
-          <Input id="signup-name" autoComplete="name" placeholder="Alex Morgan" value={formData.name} onChange={set("name")} />
-        </div>
+        <TextInput label="Full name" autoComplete="name" placeholder="Alex Morgan" value={formData.name} onChange={set("name")} />
+
+        <TextInput label="Work email" type="email" autoComplete="email" placeholder="you@company.com" value={formData.email} onChange={set("email")} />
 
         <div>
-          <label htmlFor="signup-email" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-            Work email
-          </label>
-          <Input id="signup-email" type="email" autoComplete="email" placeholder="you@company.com" value={formData.email} onChange={set("email")} />
-        </div>
-
-        <div>
-          <label htmlFor="signup-password" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
-            Password
-          </label>
-          <Input.Password id="signup-password" autoComplete="new-password" placeholder="At least 8 characters" value={formData.password} onChange={set("password")} />
+          <PasswordInput label="Password" autoComplete="new-password" placeholder="At least 8 characters" value={formData.password} onChange={set("password")} />
           <PasswordStrengthIndicator password={formData.password} className="mt-2.5" />
         </div>
 
-        <Button type="primary" htmlType="submit" loading={loading} block>
+        <Button type="submit" loading={loading} fullWidth>
           Create account
         </Button>
       </form>
